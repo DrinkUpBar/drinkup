@@ -33,6 +33,8 @@ public class Bar {
 
     private Integer barImageType;
 
+    private String image;
+
     @JsonManagedReference
     @OneToMany(mappedBy = "bar", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BarStock> barStocks;

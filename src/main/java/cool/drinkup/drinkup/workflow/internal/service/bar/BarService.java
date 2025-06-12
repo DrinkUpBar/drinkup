@@ -50,6 +50,9 @@ public class BarService {
                     if (barUpdateReq.getDescription() != null) {
                         existingBar.setDescription(barUpdateReq.getDescription());
                     }
+                    if (barUpdateReq.getImage() != null) {
+                        existingBar.setImage(barUpdateReq.getImage());
+                    }
                     return barRepository.save(existingBar);
                 })
                 .orElseThrow(() -> new RuntimeException("Bar not found with id: " + barId));

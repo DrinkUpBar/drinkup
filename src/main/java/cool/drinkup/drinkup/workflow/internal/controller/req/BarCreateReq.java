@@ -6,5 +6,6 @@ import lombok.Data;
 public class BarCreateReq {
     private String name;
     private String userId;
+    private String image;
     private String description;
 }

@@ -13,13 +13,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import cool.drinkup.drinkup.shared.spi.CommonResp;
 import cool.drinkup.drinkup.user.spi.AuthenticatedUserDTO;
 import cool.drinkup.drinkup.user.spi.AuthenticationServiceFacade;
 import cool.drinkup.drinkup.workflow.internal.controller.req.BarCreateReq;
 import cool.drinkup.drinkup.workflow.internal.controller.req.BarUpdateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.resp.BarVo;
 import cool.drinkup.drinkup.workflow.internal.model.Bar;
+import cool.drinkup.drinkup.workflow.internal.mapper.BarMapper;
 import cool.drinkup.drinkup.workflow.internal.service.bar.BarService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,37 +36,38 @@ import lombok.RequiredArgsConstructor;
 public class BarController {
     
     private final BarService barService;
+    private final BarMapper barMapper;
     private final AuthenticationServiceFacade authenticationServiceFacade;
     
     @Operation(summary = "创建吧台", description = "创建一个新的吧台")
     @PreAuthorize("isAuthenticated()")
     @PostMapping
-    public ResponseEntity<CommonResp<Bar>> createBar(@RequestBody BarCreateReq barCreateReq) {
+    public ResponseEntity<CommonResp<BarVo>> createBar(@RequestBody BarCreateReq barCreateReq) {
         Bar bar = barService.createBar(barCreateReq);
-        return ResponseEntity.ok(CommonResp.success(bar));
+        return ResponseEntity.ok(CommonResp.success(barMapper.toBarVo(bar)));
     }
 
     @Operation(summary = "获取吧台列表", description = "获取当前用户的所有吧台")
     @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public ResponseEntity<CommonResp<List<Bar>>> getBar() {
+    public ResponseEntity<CommonResp<List<BarVo>>> getBar() {
         Optional<AuthenticatedUserDTO> currentAuthenticatedUser = authenticationServiceFacade.getCurrentAuthenticatedUser();
         if (currentAuthenticatedUser.isEmpty()) {
             throw new RuntimeException("Cannot get current authenticated user");
         }
         AuthenticatedUserDTO authenticatedUserDTO = currentAuthenticatedUser.get();
         List<Bar> bars = barService.getUserBar(authenticatedUserDTO.userId());
-        return ResponseEntity.ok(CommonResp.success(bars));
+        return ResponseEntity.ok(CommonResp.success(bars.stream().map(barMapper::toBarVo).collect(Collectors.toList())));
     }
     
     @Operation(summary = "更新吧台", description = "根据吧台ID更新吧台信息")
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/{id}")
-    public ResponseEntity<CommonResp<Bar>> updateBar(
+    public ResponseEntity<CommonResp<BarVo>> updateBar(
             @Parameter(description = "吧台ID") @PathVariable("id") Long id,
             @RequestBody BarUpdateReq barUpdateReq) {
         Bar updatedBar = barService.updateBar(id, barUpdateReq);
-        return ResponseEntity.ok(CommonResp.success(updatedBar));
+        return ResponseEntity.ok(CommonResp.success(barMapper.toBarVo(updatedBar)));
     }
     
     @Operation(summary = "删除吧台", description = "根据吧台ID删除吧台")
@@ -78,10 +82,10 @@ public class BarController {
     @Operation(summary = "获取特定吧台", description = "根据吧台ID获取吧台信息")
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}")
-    public ResponseEntity<CommonResp<Bar>> getBarById(
+    public ResponseEntity<CommonResp<BarVo>> getBarById(
             @Parameter(description = "吧台ID") @PathVariable("id") Long id) {
         Bar bar = barService.getBarById(id)
                 .orElseThrow(() -> new RuntimeException("Bar not found with id: " + id));
-        return ResponseEntity.ok(CommonResp.success(bar));
+        return ResponseEntity.ok(CommonResp.success(barMapper.toBarVo(bar)));
     }
 }

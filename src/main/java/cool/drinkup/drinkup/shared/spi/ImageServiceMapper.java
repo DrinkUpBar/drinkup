@@ -1,9 +1,8 @@
-package cool.drinkup.drinkup.wine.internal.mapper;
+package cool.drinkup.drinkup.shared.spi;
 
 import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
 
-import cool.drinkup.drinkup.shared.spi.ImageServiceFacade;
 import lombok.RequiredArgsConstructor;
 
 @Component

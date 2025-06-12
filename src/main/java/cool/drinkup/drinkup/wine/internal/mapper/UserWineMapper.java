@@ -1,11 +1,11 @@
 package cool.drinkup.drinkup.wine.internal.mapper;
 
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,10 +17,11 @@ import java.util.Collections;
 import java.util.List;
 
 import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
+import cool.drinkup.drinkup.shared.spi.ImageServiceMapper;
 import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowUserWineVo;
 import cool.drinkup.drinkup.wine.internal.model.UserWine;
 
-@Mapper(componentModel = "spring", uses = ImageServiceMapper.class)
+@Mapper(componentModel = "spring", uses = ImageServiceMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public abstract class UserWineMapper {
 
     protected static final Logger log = LoggerFactory.getLogger(UserWineMapper.class);
