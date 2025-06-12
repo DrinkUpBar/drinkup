@@ -29,6 +29,8 @@ import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
 import cool.drinkup.drinkup.workflow.internal.util.ContentTypeUtil;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
@@ -60,6 +62,64 @@ public class ImageRecognitionService {
             return; 
         }
         this.promptTemplate = prompt.getSystemPrompt();
+    }
+
+    public record StreamBarStockResult(boolean isDone, String text, List<BarStock> barStocks) {
+    }
+
+    public Flux<StreamBarStockResult> recognizeStockFromImageStream(String imageId) {
+        try {
+            if (promptTemplate == null || promptTemplate.trim().isEmpty()) {
+                log.error("Prompt template is not initialized");
+                return Flux.just(new StreamBarStockResult(true, "Error: Prompt template not found", 
+                        new ArrayList<>()));
+            }
+            
+            List<Message> messages = new ArrayList<>();
+            messages.add(new SystemMessage(promptTemplate));
+            Resource image = imageService.loadImage(imageId);
+            String mimeType = contentTypeUtil.detectMimeType(image).toString();
+            UserMessage userMessage = UserMessage.builder().text("这是原料图片，请开始识别")
+                    .media(List.of(new Media(MimeType.valueOf(mimeType), image))).build();
+            messages.add(userMessage);
+            Prompt prompt = new Prompt(messages);
+
+            Flux<ChatResponse> responseFlux = chatModel.stream(prompt);
+
+            // Create a shared flux with proper null safety
+            Flux<String> textStream = responseFlux
+                    .map(chatResponse -> {
+                        if (chatResponse.getResult() == null || chatResponse.getResult().getOutput() == null) {
+                            return "";
+                        }
+                        String text = chatResponse.getResult().getOutput().getText();
+                        return text != null ? text : "";
+                    })
+                    .filter(text -> !text.isEmpty())
+                    .share(); // Use share() instead of publish().autoConnect(1) for multiple subscribers
+
+            // This flux will emit the accumulated text for each chunk.
+            Flux<StreamBarStockResult> intermediateResults = textStream
+                    .scan(new StringBuilder(), StringBuilder::append)
+                    .map(sb -> new StreamBarStockResult(false, sb.toString(), null));
+
+            // This mono will represent the final result after the stream is complete.
+            Mono<StreamBarStockResult> finalResult = textStream
+                    .reduce(new StringBuilder(), StringBuilder::append)
+                    .map(fullTextBuilder -> {
+                        String fullText = fullTextBuilder.toString();
+                        List<BarStock> barStocks = parseRecognitionResponse(fullText);
+                        return new StreamBarStockResult(true, fullText, barStocks);
+                    });
+
+            // We combine the intermediate results with the final result.
+            return Flux.concat(intermediateResults, finalResult)
+                    .doOnError(e -> log.error("Error processing image for stock recognition stream", e));
+        } catch (Exception e) {
+            log.error("Error setting up image recognition stream", e);
+            return Flux.just(new StreamBarStockResult(true, "Error setting up stream: " + e.getMessage(),
+                    new ArrayList<>()));
+        }
     }
 
     public List<BarStock> recognizeStockFromImage(String imageId) {
@@ -113,19 +173,36 @@ public class ImageRecognitionService {
     }
 
     private String extractJsonContent(String response) {
+        if (response == null || response.trim().isEmpty()) {
+            return "{\"bar_stocks\":[]}";
+        }
+        
+        String trimmedResponse = response.trim();
+        
+        // If response contains JSON object directly
+        if (trimmedResponse.startsWith("{") && trimmedResponse.endsWith("}")) {
+            return trimmedResponse;
+        }
+        
         // If response contains JSON array directly
-        if (response.trim().startsWith("[") && response.trim().endsWith("]")) {
-            return response.trim();
+        if (trimmedResponse.startsWith("[") && trimmedResponse.endsWith("]")) {
+            return "{\"bar_stocks\":" + trimmedResponse + "}";
         }
 
         // If JSON is wrapped in code blocks
         if (response.contains("```json") && response.contains("```")) {
             int start = response.indexOf("```json") + 7;
             int end = response.indexOf("```", start);
-            return response.substring(start, end).trim();
+            if (end > start) {
+                String jsonContent = response.substring(start, end).trim();
+                if (jsonContent.startsWith("[") && jsonContent.endsWith("]")) {
+                    return "{\"bar_stocks\":" + jsonContent + "}";
+                }
+                return jsonContent;
+            }
         }
 
-        // If no JSON format is found, return empty array
-        return "[]";
+        // If no JSON format is found, return empty object
+        return "{\"bar_stocks\":[]}";
     }
 }

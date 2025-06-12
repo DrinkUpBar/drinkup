@@ -64,6 +64,8 @@ public class ImageController {
             return ResponseEntity.ok(CommonResp.error("上传图片失败: " + e.getMessage()));
         }
     }
+
+    
     
     @Operation(
         summary = "获取图片",

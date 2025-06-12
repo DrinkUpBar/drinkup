@@ -51,6 +51,7 @@
 		<fal-client.version>0.7.1</fal-client.version>
 		<google-api-client.version>2.2.0</google-api-client.version>
 		<bizlog-sdk.version>3.0.6</bizlog-sdk.version>
+		<tika.version>3.2.0</tika.version>
 	</properties>
 	<dependencies>
 		<!-- Actuator + Prometheus 指标 -->
@@ -152,6 +153,17 @@
 			<groupId>io.github.mouzt</groupId>
 			<artifactId>bizlog-sdk</artifactId>
 			<version>${bizlog-sdk.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<version>${tika.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-parsers-standard-package</artifactId>
+			<version>${tika.version}</version>
 		</dependency>
 
 		<dependency>

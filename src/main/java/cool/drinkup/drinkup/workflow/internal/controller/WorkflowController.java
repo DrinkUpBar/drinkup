@@ -21,6 +21,7 @@ import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowStockRecogn
 import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowUserChatReq;
 import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowUserReq;
 import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowStockRecognitionResp;
+import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowStockRecognitionStreamResp;
 import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowUserChatResp;
 import cool.drinkup.drinkup.workflow.internal.service.WorkflowService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +30,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 @Slf4j
 @RestController
@@ -125,4 +127,24 @@ public class WorkflowController {
         return ResponseEntity.ok(CommonResp.success(resp));
     }
 
+    @LogRecord(
+        type = AIChatEvent.AI_CHAT,
+        subType = AIChatEvent.BehaviorEvent.STOCK_RECOGNITION,
+        bizNo = "{{#barId}}",
+        success = "用户库存识别成功通过流式库存识别"
+    )
+    @Operation(summary = "流式库存识别", description = "通过图片流式识别库存")
+    @ApiResponse(responseCode = "200", description = "Successfully recognized stock from image")
+    @PostMapping(
+        value = "/recognize-stock-stream/{barId}", 
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_NDJSON_VALUE
+    )
+    @PreAuthorize("isAuthenticated()")
+    public Flux<WorkflowStockRecognitionStreamResp> recognizeStockStream(
+            @Parameter(description = "Bar ID") @PathVariable("barId") Long barId,
+            @Parameter(description = "Image file for stock recognition") @RequestBody WorkflowStockRecognitionReq req) {
+        req.setBarId(barId);
+        return workflowService.recognizeStockStream(req);
+    }
 }
