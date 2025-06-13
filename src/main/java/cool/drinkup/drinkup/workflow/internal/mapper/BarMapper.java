@@ -6,12 +6,12 @@ import org.mapstruct.InjectionStrategy;
 
 import java.util.Random;
 
-import cool.drinkup.drinkup.shared.spi.ImageServiceMapper;
+import cool.drinkup.drinkup.shared.spi.CommonMapper;
 import cool.drinkup.drinkup.workflow.internal.controller.req.BarCreateReq;
 import cool.drinkup.drinkup.workflow.internal.controller.resp.BarVo;
 import cool.drinkup.drinkup.workflow.internal.model.Bar;
 
-@Mapper(componentModel = "spring", uses = ImageServiceMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = CommonMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface BarMapper {
 
     @Mapping(target = "id", ignore = true)

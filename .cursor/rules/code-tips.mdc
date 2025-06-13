@@ -1,0 +1,8 @@
+---
+description: 代码开发注意事项
+globs: 
+alwaysApply: false
+---
+## 时间部分
+在Entity中使用时间戳使用ZoneDateTime(UTC+0时区)
+前端Vo展示时需要用String来表示, 通过Mapepr进行转化UTC+8时区

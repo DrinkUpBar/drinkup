@@ -11,12 +11,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
 
-import cool.drinkup.drinkup.shared.spi.ImageServiceMapper;
+import cool.drinkup.drinkup.shared.spi.CommonMapper;
 import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowWineVo;
 import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowWineVo.Ingredient;
 import cool.drinkup.drinkup.wine.internal.model.Wine;
 
-@Mapper(componentModel = "spring", uses = ImageServiceMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = CommonMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public abstract class WineMapper {
     
     protected ObjectMapper OBJECT_MAPPER = new ObjectMapper();
