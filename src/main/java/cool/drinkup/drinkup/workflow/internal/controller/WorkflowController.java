@@ -17,11 +17,15 @@ import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
 import cool.drinkup.drinkup.shared.spi.CommonResp;
 import cool.drinkup.drinkup.wine.spi.WorkflowWineResp;
 import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowBartenderChatReq;
+import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowMaterialAnalysisReq;
 import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowStockRecognitionReq;
+import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowTranslateReq;
 import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowUserChatReq;
 import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowUserReq;
+import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowMaterialAnalysisResp;
 import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowStockRecognitionResp;
 import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowStockRecognitionStreamResp;
+import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowTranslateResp;
 import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowUserChatResp;
 import cool.drinkup.drinkup.workflow.internal.service.WorkflowService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -147,4 +151,55 @@ public class WorkflowController {
         req.setBarId(barId);
         return workflowService.recognizeStockStream(req);
     }
+
+    @LogRecord(
+        type = AIChatEvent.AI_CHAT,
+        subType = AIChatEvent.BehaviorEvent.AI_TRANSLATE,
+        bizNo = "null",
+        success = "AI翻译成功，翻译内容：{{#translateReq.text}}",
+        extra = "{{@logExtraUtil.getLogExtra(#translateReq)}}"
+    )
+    @Operation(
+        summary = "AI翻译",
+        description = "使用AI进行文本翻译"
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully translated text")
+    @PostMapping("/translate")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CommonResp<WorkflowTranslateResp>> translate(
+        @Parameter(description = "Translation request") 
+        @RequestBody WorkflowTranslateReq translateReq
+    ) {
+        var resp = workflowService.translate(translateReq);
+        if (resp == null) {
+            return ResponseEntity.ok(CommonResp.error("AI翻译失败"));
+        }
+        return ResponseEntity.ok(CommonResp.success(resp));
+    }
+
+    @LogRecord(
+        type = AIChatEvent.AI_CHAT,
+        subType = AIChatEvent.MaterialEvent.MATERIAL_ANALYSIS,
+        bizNo = "null",
+        success = "AI材料解读成功，解读材料ID：{{#materialReq.materialId}}",
+        extra = "{{@logExtraUtil.getLogExtra(#materialReq)}}"
+    )
+    @Operation(
+        summary = "AI材料解读",
+        description = "使用AI解读酒类材料信息"
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully analyzed material")
+    @PostMapping("/analyze-material")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CommonResp<WorkflowMaterialAnalysisResp>> analyzeMaterial(
+        @Parameter(description = "Material analysis request") 
+        @RequestBody WorkflowMaterialAnalysisReq materialReq
+    ) {
+        var resp = workflowService.analyzeMaterial(materialReq);
+        if (resp == null) {
+            return ResponseEntity.ok(CommonResp.error("AI材料解读失败"));
+        }
+        return ResponseEntity.ok(CommonResp.success(resp));
+    }
+
 }

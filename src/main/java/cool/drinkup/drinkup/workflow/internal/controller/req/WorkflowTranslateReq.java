@@ -1,0 +1,23 @@
+package cool.drinkup.drinkup.workflow.internal.controller.req;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+@Data
+@Schema(description = "AI翻译请求")
+public class WorkflowTranslateReq {
+    
+    @NotNull(message = "翻译文本不能为空")
+    @Size(max = 5000, message = "翻译文本长度不能超过5000字符")
+    @Schema(description = "待翻译的文本", example = "金酒")
+    private String text;
+    
+    @Schema(description = "目标语言", example = "english", defaultValue = "english")
+    private String targetLanguage = "english";
+    
+    @Schema(description = "翻译场景", example = "cocktail", defaultValue = "cocktail")
+    private String scene = "cocktail";
+} 

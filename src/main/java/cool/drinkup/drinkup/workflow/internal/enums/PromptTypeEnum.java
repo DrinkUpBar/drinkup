@@ -4,4 +4,6 @@ public enum PromptTypeEnum {
     CHAT,
     IMAGE_RECOGNITION,
     BARTENDER,
+    TRANSLATE,
+    MATERIAL_ANALYSIS,
 }

@@ -38,4 +38,8 @@ public class MaterialService {
         }
         return materialRepository.findByCategoryIds(categoryIds);
     }
+
+    public Material getMaterialById(Long materialId) {
+        return materialRepository.findById(materialId).orElse(null);
+    }
 } 

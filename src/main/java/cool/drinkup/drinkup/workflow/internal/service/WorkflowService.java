@@ -18,11 +18,15 @@ import cool.drinkup.drinkup.wine.spi.UserWineServiceFacade;
 import cool.drinkup.drinkup.wine.spi.WineServiceFacade;
 import cool.drinkup.drinkup.wine.spi.WorkflowWineResp;
 import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowBartenderChatReq;
+import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowMaterialAnalysisReq;
 import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowStockRecognitionReq;
+import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowTranslateReq;
 import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowUserChatReq;
 import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowUserReq;
+import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowMaterialAnalysisResp;
 import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowStockRecognitionResp;
 import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowStockRecognitionStreamResp;
+import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowTranslateResp;
 import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowUserChatResp;
 import cool.drinkup.drinkup.workflow.internal.model.Bar;
 import cool.drinkup.drinkup.workflow.internal.model.BarStock;
@@ -37,7 +41,10 @@ import cool.drinkup.drinkup.workflow.internal.service.chat.dto.ChatParams;
 import cool.drinkup.drinkup.workflow.internal.service.image.ImageGenerateService;
 import cool.drinkup.drinkup.workflow.internal.service.image.ImageRecognitionService;
 import cool.drinkup.drinkup.workflow.internal.service.image.ImageService;
+import cool.drinkup.drinkup.workflow.internal.service.material.MaterialAnalysisService;
+import cool.drinkup.drinkup.workflow.internal.service.material.MaterialAnalysisService.MaterialAnalysisResult;
 import cool.drinkup.drinkup.workflow.internal.service.stock.BarStockService;
+import cool.drinkup.drinkup.workflow.internal.service.translate.TranslateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -46,6 +53,7 @@ import reactor.core.publisher.Flux;
 @Service
 @RequiredArgsConstructor
 public class WorkflowService {
+
     private final WineServiceFacade wineServiceFacade;
     private final UserWineServiceFacade userWineServiceFacade;
     private final ChatBotService chatBotService;
@@ -57,6 +65,8 @@ public class WorkflowService {
     private final ImageService imageService;
     private final ThemeFactory themeFactory;
     private final ImageGenerateService imageGenerateService;
+    private final TranslateService translateService;
+    private final MaterialAnalysisService materialAnalysisService;
 
     public WorkflowWineResp processCocktailRequest(WorkflowUserReq userInput) {
         String userInputText = userInput.getUserInput();
@@ -177,7 +187,7 @@ public class WorkflowService {
                     resp.setRecognizedStocks(result.barStocks());
                     return resp;
                 }).doOnNext(resp -> {
-                    if (resp.isDone() && resp.getRecognizedStocks() != null && !resp.getRecognizedStocks().isEmpty()) {
+                    if ( resp.isDone() && resp.getRecognizedStocks() != null && !resp.getRecognizedStocks().isEmpty()) {
                         try {
                             Bar bar = new Bar();
                             bar.setId(req.getBarId());
@@ -189,6 +199,40 @@ public class WorkflowService {
                         }
                     }
                 })
-                .doOnError(error -> log.error("Error in stock recognition stream for barId: {}", req.getBarId(), error));
+                .doOnError(
+                        error -> log.error("Error in stock recognition stream for barId: {}", req.getBarId(), error));
+    }
+
+    /**
+     * AI翻译
+     */
+    public WorkflowTranslateResp translate(WorkflowTranslateReq req) {
+        try {
+            long startTime = System.currentTimeMillis();
+
+            // 调用AI翻译服务
+            String translatedText = translateService.translate(
+                    req.getText(),
+                    req.getTargetLanguage(),
+                    req.getScene());
+
+            WorkflowTranslateResp resp = new WorkflowTranslateResp();
+            resp.setTranslatedText(translatedText);
+
+            return resp;
+        } catch (Exception e) {
+            log.error("AI翻译失败", e);
+            return null;
+        }
+    }
+
+    public WorkflowMaterialAnalysisResp analyzeMaterial(WorkflowMaterialAnalysisReq materialReq) {
+        MaterialAnalysisResult result = materialAnalysisService.analyzeMaterial(materialReq.getMaterialId());
+        if (result == null) {
+            return null;
+        }
+        WorkflowMaterialAnalysisResp resp = new WorkflowMaterialAnalysisResp();
+        resp.setDescription(result.description());
+        return resp;
     }
 }
