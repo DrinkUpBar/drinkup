@@ -13,15 +13,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeType;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import cool.drinkup.drinkup.workflow.internal.controller.req.BarStockCreateReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.BarStockCreateReq.InnerBarStockCreateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarStockCreateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarStockCreateReq.InnerBarStockCreateReq;
 import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
 import cool.drinkup.drinkup.workflow.internal.model.BarStock;
 import cool.drinkup.drinkup.workflow.internal.model.PromptContent;

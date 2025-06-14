@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.workflow.internal.controller;
+package cool.drinkup.drinkup.workflow.internal.controller.image;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -12,12 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.mzt.logapi.starter.annotation.LogRecord;
 
 import cool.drinkup.drinkup.common.log.event.AIChatEvent;
 import cool.drinkup.drinkup.shared.spi.CommonResp;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.ImageUploadResp;
+import cool.drinkup.drinkup.workflow.internal.controller.image.resp.ImageUploadResp;
 import cool.drinkup.drinkup.workflow.internal.service.image.ImageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

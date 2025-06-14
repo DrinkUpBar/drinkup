@@ -1,7 +1,9 @@
 package cool.drinkup.drinkup.workflow.internal.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +22,9 @@ import lombok.Setter;
 @Table(name = "bar")
 @Getter
 @Setter
+@JsonIdentityInfo(
+    generator = ObjectIdGenerators.PropertyGenerator.class,
+    property = "id") // "id" 是 Bar 实体中 ID 字段的名称
 public class Bar {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

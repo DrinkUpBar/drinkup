@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
-import cool.drinkup.drinkup.workflow.internal.controller.req.BarProcurementCreateReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.BarProcurementUpdateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarProcurementCreateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarProcurementUpdateReq;
 import cool.drinkup.drinkup.workflow.internal.model.Bar;
 import cool.drinkup.drinkup.workflow.internal.model.BarProcurement;
 import cool.drinkup.drinkup.workflow.internal.repository.BarProcurementRepository;

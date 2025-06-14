@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.workflow.internal.controller.req;
+package cool.drinkup.drinkup.workflow.internal.controller.bar.req;
 
 import java.util.List;
 

@@ -1,5 +1,6 @@
-package cool.drinkup.drinkup.workflow.internal.controller.resp;
+package cool.drinkup.drinkup.workflow.internal.controller.material.resp;
 
+import cool.drinkup.drinkup.workflow.internal.constant.WorkflowConstant;
 import lombok.Data;
 
 @Data
@@ -14,4 +15,5 @@ public class MaterialVo {
     private String createdDate;
     private String updatedDate;
     private MaterialCategoryVo category;
+    private String tag = WorkflowConstant.MATERIAL_TAG;
 } 

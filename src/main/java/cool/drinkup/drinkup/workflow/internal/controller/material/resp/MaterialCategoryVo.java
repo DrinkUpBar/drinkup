@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.workflow.internal.controller.resp;
+package cool.drinkup.drinkup.workflow.internal.controller.material.resp;
 
 
 import java.util.List;

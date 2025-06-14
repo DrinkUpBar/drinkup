@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.workflow.internal.controller;
+package cool.drinkup.drinkup.workflow.internal.controller.material;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import cool.drinkup.drinkup.shared.spi.CommonResp;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.MaterialVo;
+import cool.drinkup.drinkup.workflow.internal.controller.material.resp.MaterialVo;
 import cool.drinkup.drinkup.workflow.internal.mapper.MaterialMapper;
 import cool.drinkup.drinkup.workflow.internal.model.Material;
 import cool.drinkup.drinkup.workflow.internal.service.material.MaterialService;

@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import cool.drinkup.drinkup.workflow.internal.controller.req.BarStockCreateReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.BarStockUpdateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarStockCreateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarStockUpdateReq;
 import cool.drinkup.drinkup.workflow.internal.mapper.BatStockMapper;
 import cool.drinkup.drinkup.workflow.internal.model.BarStock;
 import cool.drinkup.drinkup.workflow.internal.repository.BarStockRepository;

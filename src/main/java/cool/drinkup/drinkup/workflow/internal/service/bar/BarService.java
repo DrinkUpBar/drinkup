@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import cool.drinkup.drinkup.workflow.internal.controller.req.BarCreateReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.BarUpdateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarCreateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarUpdateReq;
 import cool.drinkup.drinkup.workflow.internal.mapper.BarMapper;
 import cool.drinkup.drinkup.workflow.internal.model.Bar;
 import cool.drinkup.drinkup.workflow.internal.repository.BarRepository;

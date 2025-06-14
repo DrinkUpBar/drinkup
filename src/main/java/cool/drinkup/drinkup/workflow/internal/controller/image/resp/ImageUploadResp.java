@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.workflow.internal.controller.resp;
+package cool.drinkup.drinkup.workflow.internal.controller.image.resp;
 
 import lombok.Data;
 

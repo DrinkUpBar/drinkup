@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.workflow.internal.controller;
+package cool.drinkup.drinkup.workflow.internal.controller.bar;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 import cool.drinkup.drinkup.shared.spi.CommonResp;
 import cool.drinkup.drinkup.user.spi.AuthenticatedUserDTO;
 import cool.drinkup.drinkup.user.spi.AuthenticationServiceFacade;
-import cool.drinkup.drinkup.workflow.internal.controller.req.BarCreateReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.BarUpdateReq;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.BarVo;
-import cool.drinkup.drinkup.workflow.internal.model.Bar;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarCreateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarUpdateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.resp.BarVo;
 import cool.drinkup.drinkup.workflow.internal.mapper.BarMapper;
+import cool.drinkup.drinkup.workflow.internal.model.Bar;
 import cool.drinkup.drinkup.workflow.internal.service.bar.BarService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
