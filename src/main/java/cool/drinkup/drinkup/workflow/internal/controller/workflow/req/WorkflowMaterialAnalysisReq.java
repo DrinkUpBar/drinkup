@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.workflow.internal.controller.req;
+package cool.drinkup.drinkup.workflow.internal.controller.workflow.req;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

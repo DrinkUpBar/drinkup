@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.workflow.internal.controller;
+package cool.drinkup.drinkup.workflow.internal.controller.workflow;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,17 +16,20 @@ import cool.drinkup.drinkup.common.log.event.WineEvent;
 import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
 import cool.drinkup.drinkup.shared.spi.CommonResp;
 import cool.drinkup.drinkup.wine.spi.WorkflowWineResp;
-import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowBartenderChatReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowMaterialAnalysisReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowStockRecognitionReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowTranslateReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowUserChatReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowUserReq;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowMaterialAnalysisResp;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowStockRecognitionResp;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowStockRecognitionStreamResp;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowTranslateResp;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowUserChatResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatV2Req;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowMaterialAnalysisReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowStockRecognitionReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowTranslateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatV2Req;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowMaterialAnalysisResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowStockRecognitionResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowStockRecognitionStreamResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowTranslateResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowUserChatResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowUserChatV2Resp;
 import cool.drinkup.drinkup.workflow.internal.service.WorkflowService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -80,6 +83,7 @@ public class WorkflowController {
     @ApiResponse(responseCode = "200", description = "Successfully chatted with the bot")
     @PostMapping("/chat")
     @PreAuthorize("isAuthenticated()")
+    @Deprecated
     public ResponseEntity<CommonResp<WorkflowUserChatResp>> chat(@RequestBody WorkflowUserChatReq userInput) {
         var resp = workflowService.chat(userInput);
         if (resp == null) {
@@ -87,6 +91,30 @@ public class WorkflowController {
         }
         return ResponseEntity.ok(CommonResp.success(resp));
     }
+
+    @LogRecord(
+        type = AIChatEvent.AI_CHAT,
+        subType = AIChatEvent.BehaviorEvent.AI_CHAT,
+        bizNo = "null",
+        success = "用户AI聊天成功, 用户请求：{{#userInput.userMessage}}, 对话请求Id:{{#userInput.conversationId}}",
+        extra = "{{@logExtraUtil.getLogExtra(#_ret.body.data)}}"
+    )
+    @Operation(
+        summary = "与机器人聊天v2",
+        description = "与机器人进行对话v2"
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully chatted with the bot")
+    @PostMapping("/v2/chat")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CommonResp<WorkflowUserChatV2Resp>> chatV2(@RequestBody WorkflowUserChatV2Req userInput) {
+        var resp = workflowService.chatV2(userInput);
+        if (resp == null) {
+            return ResponseEntity.ok(CommonResp.error("Error chatting with the bot"));
+        }
+        return ResponseEntity.ok(CommonResp.success(resp));
+    }
+
+
 
     @LogRecord(
         type = AIChatEvent.AI_CHAT,
@@ -102,8 +130,32 @@ public class WorkflowController {
     @ApiResponse(responseCode = "200", description = "Successfully chatted with the bartender")
     @PostMapping("/bartender")
     @PreAuthorize("isAuthenticated()")
+    @Deprecated
     public ResponseEntity<CommonResp<WorkflowBartenderChatDto>> mixDrink(@RequestBody WorkflowBartenderChatReq bartenderInput) {
         var resp = workflowService.mixDrink(bartenderInput);
+        if (resp == null) {
+            return ResponseEntity.ok(CommonResp.error("Error mixing drink"));
+        }
+        return ResponseEntity.ok(CommonResp.success(resp));
+    }
+
+
+    @LogRecord(
+        type = AIChatEvent.AI_CHAT,
+        subType = AIChatEvent.BehaviorEvent.BARTENDER_CHAT,
+        bizNo = "{{#_ret.body.data.id}}",
+        success = "用户调酒师聊天成功，生成酒单：{{#_ret.body.data.name}}",
+        extra = "{{@logExtraUtil.getLogExtra(#bartenderInput)}}"
+    )
+    @Operation(
+        summary = "与调酒师聊天v2",
+        description = "与调酒师进行对话"
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully chatted with the bartender")
+    @PostMapping("/v2/bartender")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CommonResp<WorkflowBartenderChatDto>> mixDrinkV2(@RequestBody WorkflowBartenderChatV2Req bartenderInput) {
+        var resp = workflowService.mixDrinkV2(bartenderInput);
         if (resp == null) {
             return ResponseEntity.ok(CommonResp.error("Error mixing drink"));
         }

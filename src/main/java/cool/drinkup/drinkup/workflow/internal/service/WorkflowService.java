@@ -17,17 +17,24 @@ import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
 import cool.drinkup.drinkup.wine.spi.UserWineServiceFacade;
 import cool.drinkup.drinkup.wine.spi.WineServiceFacade;
 import cool.drinkup.drinkup.wine.spi.WorkflowWineResp;
-import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowBartenderChatReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowMaterialAnalysisReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowStockRecognitionReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowTranslateReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowUserChatReq;
-import cool.drinkup.drinkup.workflow.internal.controller.req.WorkflowUserReq;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowMaterialAnalysisResp;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowStockRecognitionResp;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowStockRecognitionStreamResp;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowTranslateResp;
-import cool.drinkup.drinkup.workflow.internal.controller.resp.WorkflowUserChatResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatV2Req;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowMaterialAnalysisReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowStockRecognitionReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowTranslateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatV2Req;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.info.Attachment;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.info.BarAttachment;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.info.ImageAttachment;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.info.MaterialAttachment;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowMaterialAnalysisResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowStockRecognitionResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowStockRecognitionStreamResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowTranslateResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowUserChatResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowUserChatV2Resp;
 import cool.drinkup.drinkup.workflow.internal.model.Bar;
 import cool.drinkup.drinkup.workflow.internal.model.BarStock;
 import cool.drinkup.drinkup.workflow.internal.service.bar.BarService;
@@ -45,6 +52,7 @@ import cool.drinkup.drinkup.workflow.internal.service.material.MaterialAnalysisS
 import cool.drinkup.drinkup.workflow.internal.service.material.MaterialAnalysisService.MaterialAnalysisResult;
 import cool.drinkup.drinkup.workflow.internal.service.stock.BarStockService;
 import cool.drinkup.drinkup.workflow.internal.service.translate.TranslateService;
+import cool.drinkup.drinkup.workflow.internal.util.StockDescriptionUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -67,6 +75,7 @@ public class WorkflowService {
     private final ImageGenerateService imageGenerateService;
     private final TranslateService translateService;
     private final MaterialAnalysisService materialAnalysisService;
+    private final StockDescriptionUtil stockDescriptionUtil;
 
     public WorkflowWineResp processCocktailRequest(WorkflowUserReq userInput) {
         String userInputText = userInput.getUserInput();
@@ -82,7 +91,7 @@ public class WorkflowService {
             var chatBotResponse = objectMapper.readValue(json, WorkflowUserChatResp.class);
             return chatBotResponse;
         } catch (JsonProcessingException e) {
-            log.error("Error parsing JSON: {}", e.getMessage());
+            log.error("Error parsing JSON: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -105,6 +114,7 @@ public class WorkflowService {
         return chatWithUser;
     }
 
+    @Deprecated
     public WorkflowBartenderChatDto mixDrink(WorkflowBartenderChatReq bartenderInput) {
         var bartenderParam = buildBartenderParams(bartenderInput);
         var chatWithBartender = bartenderService.generateDrink(bartenderInput.getMessages(), bartenderParam);
@@ -125,15 +135,33 @@ public class WorkflowService {
         }
     }
 
-    private BartenderParams buildBartenderParams(WorkflowBartenderChatReq bartenderInput) {
-        List<Bar> userBars = barService.getUserBarByBarIds(bartenderInput.getBarIds());
-        String userStock = buildBarDescription(userBars);
-        Theme theme = themeFactory.getTheme(ThemeEnum.fromValue(bartenderInput.getTheme()));
-        return BartenderParams.builder()
-                .userStock(userStock)
-                .userDemand(bartenderInput.getUserDemand())
-                .theme(theme.getName())
+    private BartenderParams buildBartenderParams(WorkflowBartenderChatV2Req bartenderInput) {
+            Theme theme = themeFactory.getTheme(ThemeEnum.fromValue(bartenderInput.getTheme()));
+            return BartenderParams.builder()
+                    .userStock(buildStockDescription(bartenderInput.getAttachment()))
+                    .userDemand(bartenderInput.getUserDemand())
+                    .theme(theme.getName())
                 .build();
+    }
+
+    public WorkflowBartenderChatDto mixDrinkV2(WorkflowBartenderChatV2Req bartenderInput) {
+        var bartenderParam = buildBartenderParams(bartenderInput);
+        var chatWithBartender = bartenderService.generateDrinkV2(bartenderInput.getConversationId(), bartenderParam);
+        var json = extractJson(chatWithBartender);
+        try {
+            var chatBotResponse = objectMapper.readValue(json, WorkflowBartenderChatDto.class);
+            String imageUrl = imageGenerateService.generateImage(chatBotResponse.getImagePrompt());
+            String imageId = imageService.storeImage(imageUrl);
+            chatBotResponse.setImage(imageId);
+            // Convert workflow response to wine response for saving
+            UserWine saveUserWine = userWineServiceFacade.saveUserWine(chatBotResponse);
+            chatBotResponse.setId(saveUserWine.getId());
+            chatBotResponse.setImage(imageService.getImageUrl(imageId));
+            return chatBotResponse;
+        } catch (JsonProcessingException e) {
+            log.error("Error parsing JSON: {}", e.getMessage());
+            return null;
+        }
     }
 
     private ChatParams buildChatParams(List<Bar> bars, String imageId) {
@@ -141,6 +169,17 @@ public class WorkflowService {
         chatParams.setUserStock(buildBarDescription(bars));
         chatParams.setImageId(StringUtils.hasText(imageId) ? imageId : null);
         return chatParams;
+    }
+
+    private BartenderParams buildBartenderParams(WorkflowBartenderChatReq bartenderInput) {
+        List<Bar> userBars = barService.getUserBarByBarIds(bartenderInput.getBarIds());
+        String userStock = buildBarDescription(userBars);
+        Theme theme = themeFactory.getTheme(ThemeEnum.fromValue(bartenderInput.getTheme()));
+        return BartenderParams.builder()
+            .userStock(userStock)
+            .userDemand(bartenderInput.getUserDemand())
+            .theme(theme.getName())
+            .build();
     }
 
     private String buildBarDescription(List<Bar> bars) {
@@ -228,11 +267,66 @@ public class WorkflowService {
 
     public WorkflowMaterialAnalysisResp analyzeMaterial(WorkflowMaterialAnalysisReq materialReq) {
         MaterialAnalysisResult result = materialAnalysisService.analyzeMaterial(materialReq.getMaterialId());
-        if (result == null) {
+        if ( result == null) {
             return null;
         }
         WorkflowMaterialAnalysisResp resp = new WorkflowMaterialAnalysisResp();
         resp.setDescription(result.description());
         return resp;
     }
+
+    public WorkflowUserChatV2Resp chatV2(WorkflowUserChatV2Req userInput) {
+        ChatBotService.ChatResponse chatResponse = chatBotService.chatV2(userInput.getConversationId(),
+                userInput.getUserMessage(), buildChatParams(userInput));
+        var json = extractJson(chatResponse.content());
+        try {
+            var chatBotResponse = objectMapper.readValue(json, WorkflowUserChatV2Resp.class);
+            chatBotResponse.setConversationId(chatResponse.conversationId());
+            return chatBotResponse;
+        } catch (JsonProcessingException e) {
+            log.error("Error parsing JSON: {}", e.getMessage(), e);
+            return null;
+        }
+
+    }
+
+    private ChatParams buildChatParams(WorkflowUserChatV2Req userInput) {
+        List<ImageAttachment> imageAttachmentList = userInput.getAttachment()
+                .getImageAttachmentList();
+        List<ChatParams.ImageAttachment> imageAttachments = imageAttachmentList.stream().map(
+                imageAttachment -> ChatParams.ImageAttachment.builder().mode(imageAttachment.getMode()).imageId(
+                        imageAttachment.getImageId()).build())
+                .toList();
+        return ChatParams.builder()
+                .userStock(buildStockDescription(userInput.getAttachment()))
+                .imageId(!imageAttachmentList.isEmpty() ? imageAttachmentList.getFirst().getImageId() : null)
+                .imageAttachmentList(imageAttachments)
+                .build();
+    }
+
+    private String buildStockDescription(Attachment attachment) {
+        StringBuilder stockDescription = new StringBuilder();
+        stockDescription.append("用户选取的所有材料如下：\n");
+        List<BarAttachment> barAttachmentList = attachment.getBarAttachmentList();
+        if ( barAttachmentList != null && !barAttachmentList.isEmpty()) {
+            stockDescription.append("用户选取的库存材料如下：\n");
+            for ( BarAttachment barAttachment : barAttachmentList) {
+                stockDescription
+                        .append(stockDescriptionUtil.getBarStockDescription(barAttachment.getBarId(),
+                                barAttachment.getSelectedStockIdList()))
+                        .append("\n");
+            }
+        }
+        List<MaterialAttachment> materialAttachmentList = attachment.getMaterialAttachmentList();
+        if ( materialAttachmentList != null && !materialAttachmentList.isEmpty()) {
+            stockDescription.append("用户选取的预设材料如下：\n");
+            for ( MaterialAttachment materialAttachment : materialAttachmentList) {
+                stockDescription.append(stockDescriptionUtil.getMaterialStockDescription(
+                        materialAttachment.getCategoryId(), materialAttachment.getSelectedMaterialIdList()))
+                        .append("\n");
+            }
+        }
+        return stockDescription.toString();
+    }
+
 }

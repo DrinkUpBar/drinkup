@@ -1,13 +1,15 @@
 package cool.drinkup.drinkup.workflow.internal.model;
 
-import java.time.ZonedDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,4 +43,7 @@ public class MaterialCategory {
 
     @Column(name = "updated_date", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private ZonedDateTime updatedDate = ZonedDateTime.now(ZoneOffset.UTC);
+
+    @OneToMany(mappedBy = "category")
+    private List<Material> materials;
 } 
