@@ -23,6 +23,5 @@ public class ChatParams {
     @Data
     public static class ImageAttachment {
         private String imageId;
-        private String mode;
     }
 }

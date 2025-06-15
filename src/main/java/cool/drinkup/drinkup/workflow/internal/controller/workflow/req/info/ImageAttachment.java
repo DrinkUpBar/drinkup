@@ -5,6 +5,4 @@ import lombok.Data;
 @Data
 public class ImageAttachment {
     private String imageId;
-
-    private String mode;
 }

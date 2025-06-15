@@ -314,7 +314,7 @@ public class WorkflowService {
         List<ImageAttachment> imageAttachmentList = userInput.getAttachment()
                 .getImageAttachmentList();
         List<ChatParams.ImageAttachment> imageAttachments = imageAttachmentList.stream().map(
-                imageAttachment -> ChatParams.ImageAttachment.builder().mode(imageAttachment.getMode()).imageId(
+                imageAttachment -> ChatParams.ImageAttachment.builder().imageId(
                         imageAttachment.getImageId()).build())
                 .toList();
         return ChatParams.builder()
