@@ -1,3 +1,4 @@
+ 
 package cool.drinkup.drinkup.workflow.internal.service;
 
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
 import cool.drinkup.drinkup.wine.spi.UserWineServiceFacade;
 import cool.drinkup.drinkup.wine.spi.WineServiceFacade;
 import cool.drinkup.drinkup.wine.spi.WorkflowWineResp;
+import cool.drinkup.drinkup.workflow.internal.constant.WorkflowConstant;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatV2Req;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowMaterialAnalysisReq;
@@ -37,6 +39,7 @@ import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowU
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowUserChatV2Resp;
 import cool.drinkup.drinkup.workflow.internal.model.Bar;
 import cool.drinkup.drinkup.workflow.internal.model.BarStock;
+import cool.drinkup.drinkup.workflow.internal.model.Material;
 import cool.drinkup.drinkup.workflow.internal.service.bar.BarService;
 import cool.drinkup.drinkup.workflow.internal.service.bartender.BartenderService;
 import cool.drinkup.drinkup.workflow.internal.service.bartender.dto.BartenderParams;
@@ -50,6 +53,7 @@ import cool.drinkup.drinkup.workflow.internal.service.image.ImageRecognitionServ
 import cool.drinkup.drinkup.workflow.internal.service.image.ImageService;
 import cool.drinkup.drinkup.workflow.internal.service.material.MaterialAnalysisService;
 import cool.drinkup.drinkup.workflow.internal.service.material.MaterialAnalysisService.MaterialAnalysisResult;
+import cool.drinkup.drinkup.workflow.internal.service.material.MaterialService;
 import cool.drinkup.drinkup.workflow.internal.service.stock.BarStockService;
 import cool.drinkup.drinkup.workflow.internal.service.translate.TranslateService;
 import cool.drinkup.drinkup.workflow.internal.util.StockDescriptionUtil;
@@ -75,6 +79,7 @@ public class WorkflowService {
     private final ImageGenerateService imageGenerateService;
     private final TranslateService translateService;
     private final MaterialAnalysisService materialAnalysisService;
+    private final MaterialService materialService;
     private final StockDescriptionUtil stockDescriptionUtil;
 
     public WorkflowWineResp processCocktailRequest(WorkflowUserReq userInput) {
@@ -247,7 +252,6 @@ public class WorkflowService {
      */
     public WorkflowTranslateResp translate(WorkflowTranslateReq req) {
         try {
-            long startTime = System.currentTimeMillis();
 
             // 调用AI翻译服务
             String translatedText = translateService.translate(
@@ -266,13 +270,29 @@ public class WorkflowService {
     }
 
     public WorkflowMaterialAnalysisResp analyzeMaterial(WorkflowMaterialAnalysisReq materialReq) {
-        MaterialAnalysisResult result = materialAnalysisService.analyzeMaterial(materialReq.getMaterialId());
+        String materialText = getMaterialText(materialReq);
+        MaterialAnalysisResult result = materialAnalysisService.analyzeMaterial(materialText);
         if ( result == null) {
             return null;
         }
         WorkflowMaterialAnalysisResp resp = new WorkflowMaterialAnalysisResp();
         resp.setDescription(result.description());
         return resp;
+    }
+
+    private String getMaterialText(WorkflowMaterialAnalysisReq materialReq) {
+        if (materialReq.getItem() == null) {
+            return materialReq.getText();
+        }
+        if ( materialReq.getItem().getType().equalsIgnoreCase(WorkflowConstant.MATERIAL_TAG)) {
+            Material material = materialService.getMaterialById(materialReq.getItem().getId());
+            return material.getName();
+        }
+        if ( materialReq.getItem().getType().equalsIgnoreCase(WorkflowConstant.BAR_STOCK_TAG)) {
+            BarStock barStock = barStockService.getBarStockById(materialReq.getItem().getId());
+            return barStock.getName();
+        }
+        throw new RuntimeException("Invalid material analysis type: " + materialReq);
     }
 
     public WorkflowUserChatV2Resp chatV2(WorkflowUserChatV2Req userInput) {

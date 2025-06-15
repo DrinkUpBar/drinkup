@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
-import cool.drinkup.drinkup.workflow.internal.model.Material;
 import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
 import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
 import cool.drinkup.drinkup.workflow.internal.service.material.MaterialAnalysisService;
@@ -39,20 +38,15 @@ public class AIMaterialAnalysisService implements MaterialAnalysisService {
     }
 
     @Override
-    public MaterialAnalysisResult analyzeMaterial(Long materialId) {
-        Material material = materialService.getMaterialById(materialId);
-        if (material == null) {
-            return null;
-        }
-        Prompt prompt = buildPrompt(material);
+    public MaterialAnalysisResult analyzeMaterial(String materialText) {
+        Prompt prompt = buildPrompt(materialText);
         var response = materialAnalysisChatModel.call(prompt);
         String description = response.getResult().getOutput().getText();
         return new MaterialAnalysisResult(description);
     }
 
-    private Prompt buildPrompt(Material material) {
-        String systemPrompt = promptTemplate.replace("{material_name}", material.getName())
-        .replace("{material_en_name}", material.getNameEn());
+    private Prompt buildPrompt(String materialText) {
+        String systemPrompt = promptTemplate.replace("{material_text}", materialText);
         var systemMessage = new SystemMessage(systemPrompt);
         var userMessage = new UserMessage("Analyze the material ");
         return new Prompt(List.of(systemMessage, userMessage));

@@ -59,4 +59,9 @@ public class BarStockService {
     public List<BarStock> saveAll(List<BarStock> barStocks) {
         return barStockRepository.saveAll(barStocks);
     }
+
+    public BarStock getBarStockById(Long stockId) {
+        return barStockRepository.findById(stockId)
+                .orElseThrow(() -> new RuntimeException("Bar stock not found"));
+    }
 }
