@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
 import com.mzt.logapi.starter.annotation.LogRecord;
 
 import cool.drinkup.drinkup.common.log.event.AIChatEvent;
@@ -53,10 +54,10 @@ public class ImageController {
     ) {
         try {
             String imageId = imageService.storeImage(image);
-            
+            String imageUrl = imageService.getImageUrl(imageId);
             ImageUploadResp response = new ImageUploadResp();
             response.setImageId(imageId);
-            
+            response.setImageUrl(imageUrl);
             return ResponseEntity.ok(CommonResp.success(response));
         } catch (Exception e) {
             log.error("Failed to upload image", e);
