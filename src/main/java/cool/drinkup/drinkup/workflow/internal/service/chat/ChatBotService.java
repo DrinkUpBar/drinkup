@@ -139,8 +139,8 @@ public class ChatBotService {
             conversationId = UUID.randomUUID().toString();
             this.chatMemory.add(conversationId, new SystemMessage(promptTemplate));
         }
-        var userMessage = buildUserMessage(userContent, params);
-        this.chatMemory.add(conversationId, userMessage);
+        var userMessageList = buildUserMessage(userContent, params);
+        this.chatMemory.add(conversationId, userMessageList);
         Prompt prompt = buildPrompt(conversationId);
         ChatBotService proxy = (ChatBotService) AopContext.currentProxy();
         var response = proxy.aiChatV2(conversationId, prompt);
@@ -165,19 +165,23 @@ public class ChatBotService {
                 .build());
     }
 
-    private UserMessage buildUserMessage(String userInput, ChatParams params) {
+    private List<Message> buildUserMessage(String userInput, ChatParams params) {
         if (params.getImageId() != null) {
+            List<Message> userMessages = new ArrayList<>();
+            userMessages.add(UserMessage.builder().text(userInput).build());
             Resource resource = imageService.loadImage(params.getImageId());
             try {
                 String mime = contentTypeUtil.detectMimeType(resource);
                 Media media = new Media(MimeType.valueOf(mime), resource);
-                return UserMessage.builder().text("This is the image of the user's stock: ").media(List.of(media)).build();
+                userMessages.add(UserMessage.builder().text("This is the image of the user's upload: ")
+                        .media(List.of(media)).build());
+                return userMessages;
             } catch (IOException e) {
                 log.error("Error loading image: {}", e.getMessage(), e);
                 throw new RuntimeException("Image load error");
             }
         } else {
-            return UserMessage.builder().text(userInput).build();
+            return List.of(UserMessage.builder().text(userInput).build());
         }
     }
 
