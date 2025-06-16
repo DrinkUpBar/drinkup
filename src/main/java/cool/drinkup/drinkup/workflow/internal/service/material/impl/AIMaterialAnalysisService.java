@@ -12,15 +12,12 @@ import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
 import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
 import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
 import cool.drinkup.drinkup.workflow.internal.service.material.MaterialAnalysisService;
-import cool.drinkup.drinkup.workflow.internal.service.material.MaterialService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class AIMaterialAnalysisService implements MaterialAnalysisService {
-
-    private final MaterialService materialService;
 
     private final ChatModel materialAnalysisChatModel;
 

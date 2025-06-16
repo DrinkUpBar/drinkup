@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeType;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -83,37 +84,57 @@ public class ImageRecognitionService {
             messages.add(userMessage);
             Prompt prompt = new Prompt(messages);
 
-            Flux<ChatResponse> responseFlux = chatModel.stream(prompt);
+            // 创建一个共享的flux来避免重复调用AI模型
+            Flux<ChatResponse> sharedResponseFlux = chatModel.stream(prompt).share();
 
-            // Create a shared flux with proper null safety
-            Flux<String> textStream = responseFlux
-                    .map(chatResponse -> {
-                        if (chatResponse.getResult() == null || chatResponse.getResult().getOutput() == null) {
-                            return "";
+            // 获取流式的中间结果
+            Flux<StreamBarStockResult> streamingResults = sharedResponseFlux
+                    .scan(new StringBuilder(), (acc, chatResponse) -> {
+                        // 提取当前chunk的文本并累积
+                        if (chatResponse.getResult() != null && chatResponse.getResult().getOutput() != null) {
+                            String text = chatResponse.getResult().getOutput().getText();
+                            if (text != null && !text.isEmpty()) {
+                                acc.append(text);
+                            }
                         }
-                        String text = chatResponse.getResult().getOutput().getText();
-                        return text != null ? text : "";
+                        return acc;
                     })
-                    .filter(text -> !text.isEmpty())
-                    .share(); // Use share() instead of publish().autoConnect(1) for multiple subscribers
-
-            // This flux will emit the accumulated text for each chunk.
-            Flux<StreamBarStockResult> intermediateResults = textStream
-                    .scan(new StringBuilder(), StringBuilder::append)
-                    .map(sb -> new StreamBarStockResult(false, sb.toString(), null));
-
-            // This mono will represent the final result after the stream is complete.
-            Mono<StreamBarStockResult> finalResult = textStream
-                    .reduce(new StringBuilder(), StringBuilder::append)
-                    .map(fullTextBuilder -> {
-                        String fullText = fullTextBuilder.toString();
-                        List<BarStock> barStocks = parseRecognitionResponse(fullText);
-                        return new StreamBarStockResult(true, fullText, barStocks);
+                    .skip(1) // 跳过初始的空StringBuilder
+                    .map(accumulatedText -> {
+                        // 返回实时的累积结果，isDone=false表示还在streaming
+                        return new StreamBarStockResult(false, accumulatedText.toString(), null);
                     });
 
-            // We combine the intermediate results with the final result.
-            return Flux.concat(intermediateResults, finalResult)
-                    .doOnError(e -> log.error("Error processing image for stock recognition stream", e));
+            // 获取最终结果
+            Mono<StreamBarStockResult> finalResult = sharedResponseFlux
+                    .reduce(new StringBuilder(), (acc, chatResponse) -> {
+                        if (chatResponse.getResult() != null && chatResponse.getResult().getOutput() != null) {
+                            String text = chatResponse.getResult().getOutput().getText();
+                            if (text != null) {
+                                acc.append(text);
+                            }
+                        }
+                        return acc;
+                    })
+                    .map(fullText -> {
+                        List<BarStock> barStocks = parseRecognitionResponse(fullText.toString());
+                        return new StreamBarStockResult(true, fullText.toString(), barStocks);
+                    });
+
+            // 合并流式结果和最终结果
+            return streamingResults
+                    .concatWith(finalResult)
+                    .doOnNext(result -> {
+                        if (!result.isDone()) {
+                            log.debug("Streaming text length: {}", result.text().length());
+                        } else {
+                            log.info("Stream completed with {} recognized stocks", 
+                                result.barStocks() != null ? result.barStocks().size() : 0);
+                        }
+                    })
+                    .doOnError(e -> log.error("Error processing image for stock recognition stream", e))
+                    .onErrorReturn(new StreamBarStockResult(true, "Error occurred during processing", new ArrayList<>()));
+                    
         } catch (Exception e) {
             log.error("Error setting up image recognition stream", e);
             return Flux.just(new StreamBarStockResult(true, "Error setting up stream: " + e.getMessage(),

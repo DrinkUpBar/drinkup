@@ -20,6 +20,7 @@ import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBa
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatV2Req;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowMaterialAnalysisReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowStockRecognitionReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowStockRecognitionStreamReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowTranslateReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatV2Req;
@@ -78,7 +79,8 @@ public class WorkflowController {
     )
     @Operation(
         summary = "与机器人聊天",
-        description = "与机器人进行对话"
+        description = "与机器人进行对话",
+        deprecated = true
     )
     @ApiResponse(responseCode = "200", description = "Successfully chatted with the bot")
     @PostMapping("/chat")
@@ -125,7 +127,8 @@ public class WorkflowController {
     )
     @Operation(
         summary = "与调酒师聊天",
-        description = "与调酒师进行对话"
+        description = "与调酒师进行对话",
+        deprecated = true
     )
     @ApiResponse(responseCode = "200", description = "Successfully chatted with the bartender")
     @PostMapping("/bartender")
@@ -192,15 +195,13 @@ public class WorkflowController {
     @Operation(summary = "流式库存识别", description = "通过图片流式识别库存")
     @ApiResponse(responseCode = "200", description = "Successfully recognized stock from image")
     @PostMapping(
-        value = "/recognize-stock-stream/{barId}", 
+        value = "/recognize-stock-stream",
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_NDJSON_VALUE
     )
     @PreAuthorize("isAuthenticated()")
     public Flux<WorkflowStockRecognitionStreamResp> recognizeStockStream(
-            @Parameter(description = "Bar ID") @PathVariable("barId") Long barId,
-            @Parameter(description = "Image file for stock recognition") @RequestBody WorkflowStockRecognitionReq req) {
-        req.setBarId(barId);
+            @Parameter(description = "Image file for stock recognition") @RequestBody WorkflowStockRecognitionStreamReq req) {
         return workflowService.recognizeStockStream(req);
     }
 

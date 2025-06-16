@@ -23,6 +23,7 @@ import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBa
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatV2Req;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowMaterialAnalysisReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowStockRecognitionReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowStockRecognitionStreamReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowTranslateReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatV2Req;
@@ -221,30 +222,15 @@ public class WorkflowService {
         }
     }
 
-    public Flux<WorkflowStockRecognitionStreamResp> recognizeStockStream(WorkflowStockRecognitionReq req) {
+    public Flux<WorkflowStockRecognitionStreamResp> recognizeStockStream(WorkflowStockRecognitionStreamReq req) {
         return imageRecognitionService.recognizeStockFromImageStream(req.getImageId())
                 .map(result -> {
                     WorkflowStockRecognitionStreamResp resp = new WorkflowStockRecognitionStreamResp();
                     resp.setDone(result.isDone());
                     resp.setText(result.text());
-                    resp.setBarId(req.getBarId());
                     resp.setRecognizedStocks(result.barStocks());
                     return resp;
-                }).doOnNext(resp -> {
-                    if ( resp.isDone() && resp.getRecognizedStocks() != null && !resp.getRecognizedStocks().isEmpty()) {
-                        try {
-                            Bar bar = new Bar();
-                            bar.setId(req.getBarId());
-                            resp.getRecognizedStocks().forEach(stock -> stock.setBar(bar));
-                            List<BarStock> savedStocks = barStockService.saveAll(resp.getRecognizedStocks());
-                            resp.setRecognizedStocks(savedStocks);
-                        } catch (Exception e) {
-                            log.error("Error saving recognized stocks for barId: {}", req.getBarId(), e);
-                        }
-                    }
-                })
-                .doOnError(
-                        error -> log.error("Error in stock recognition stream for barId: {}", req.getBarId(), error));
+                });
     }
 
     /**
