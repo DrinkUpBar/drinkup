@@ -15,11 +15,14 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import cool.drinkup.drinkup.common.chatLog.annotation.AiLog;
 import cool.drinkup.drinkup.common.chatLog.model.AiChatLog;
@@ -41,6 +44,7 @@ public class AiLogAspect {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Tracer tracer;
     private final AuthenticationServiceFacade authenticationServiceFacade;
+    private final Executor threadPoolTaskExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
     @Around("@annotation(aiLog)")
     public Object around(ProceedingJoinPoint joinPoint, AiLog aiLog) throws Throwable {
@@ -78,21 +82,25 @@ public class AiLogAspect {
             String responseOutput = objectMapper.writeValueAsString(result);
             ChatOptions chatOptions = prompt.getOptions();
             ChatResponse chatResponse = (ChatResponse) result;
-            aiChatLogRepository.save(AiChatLog.builder()
-                    .timestamp(Instant.now())
-                    .traceId(tracer.currentSpan().context().traceId())
-                    .conversationId(conversationId)
-                    .requestInput(requestInput)
-                    .responseOutput(responseOutput)
-                    .latency(Duration.between(start, end).toMillis())
-                    .modelName(chatOptions.getModel())
-                    .userId(authenticationServiceFacade.getCurrentAuthenticatedUser().map(AuthenticatedUserDTO::userId).orElse(null))
-                    .status(status)
-                    .errorMessage(errorMessage)
-                    .promptTokens(chatResponse.getMetadata().getUsage().getPromptTokens())
-                    .completionTokens(chatResponse.getMetadata().getUsage().getCompletionTokens())
-                    .totalTokens(chatResponse.getMetadata().getUsage().getTotalTokens())
-                    .build());
+            threadPoolTaskExecutor.execute(() -> {
+                aiChatLogRepository.save(AiChatLog.builder()
+                        .timestamp(Instant.now())
+                        .traceId(tracer.currentSpan().context().traceId())
+                        .conversationId(conversationId)
+                        .requestInput(requestInput)
+                        .responseOutput(responseOutput)
+                        .latency(Duration.between(start, end).toMillis())
+                        .modelName(chatOptions.getModel())
+                        .userId(authenticationServiceFacade.getCurrentAuthenticatedUser()
+                                .map(AuthenticatedUserDTO::userId).orElse(null))
+                        .status(status)
+                        .errorMessage(errorMessage)
+                        .promptTokens(chatResponse.getMetadata().getUsage().getPromptTokens())
+                        .completionTokens(chatResponse.getMetadata().getUsage().getCompletionTokens())
+                        .totalTokens(chatResponse.getMetadata().getUsage().getTotalTokens())
+                        .build());
+            });
+
         }
 
         return result;
