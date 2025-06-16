@@ -7,9 +7,11 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.ResponseFormat;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -23,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import cool.drinkup.drinkup.common.chatLog.annotation.AiLog;
 import cool.drinkup.drinkup.workflow.internal.config.BartenderProperties;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatReq.WorkflowBartenderChatVo;
 import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
@@ -82,7 +85,8 @@ public class BartenderService {
     public String generateDrinkV2(String conversationId, BartenderParams bartenderParams) {
         try {
             var prompt = buildPromptV2(conversationId, bartenderParams);
-            var response = chatModel.call(prompt);
+            BartenderService proxy = (BartenderService) AopContext.currentProxy();
+            var response = proxy.bartenderChatV2(conversationId, prompt);
             log.info("bartender response: {}", response);
 
             if (response.getResult() == null) {
@@ -99,6 +103,11 @@ public class BartenderService {
         }
     }
 
+    @AiLog(conversationId = "#conversationId")
+    public ChatResponse bartenderChatV2(String conversationId, Prompt prompt) {
+        return chatModel.call(prompt);
+    }
+
     @Recover
     @Observed(name = "ai.bartender.chat",
         contextualName = "Bartender聊天重试",
@@ -108,9 +117,9 @@ public class BartenderService {
     public String generateDrinkRecoverableV2(RetryException exception, String conversationId, BartenderParams bartenderParams) {
         try {
             var prompt = buildPromptV2(conversationId, bartenderParams);
-            var response = recoverableChatModel.call(prompt);
+            BartenderService proxy = (BartenderService) AopContext.currentProxy();
+            var response = proxy.bartenderChatV2(conversationId, prompt);
             log.info("bartender response: {}", response);
-
             if (response.getResult() == null) {
                 log.error("AI response result is null. Response details: {}", response);
                 throw new RuntimeException("AI response result is null");
@@ -124,6 +133,7 @@ public class BartenderService {
             throw new RuntimeException("Error generating drink recommendation after retry");
         }
     }
+
 
     private Prompt buildPromptV2(String conversationId, BartenderParams bartenderParams) {
         if (!StringUtils.hasText(conversationId)) {

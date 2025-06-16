@@ -6,10 +6,12 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.content.Media;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.ResponseFormat;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import cool.drinkup.drinkup.common.chatLog.annotation.AiLog;
 import cool.drinkup.drinkup.workflow.internal.config.ChatBotProperties;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatReq.WorkflowUserChatVo;
 import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
@@ -71,7 +74,7 @@ public class ChatBotService {
         this.promptTemplate = prompt.getSystemPrompt();
     }
 
-    public record ChatResponse(String conversationId, String content) {
+    public record ChatBotResponse(String conversationId, String content) {
     }
 
     @Observed(name = "ai.chat",
@@ -131,7 +134,7 @@ public class ChatBotService {
         lowCardinalityKeyValues = {
             "Tag", "ai"
         })
-    public ChatResponse chatV2(String conversationId, String userContent, ChatParams params) {
+    public ChatBotResponse chatV2(String conversationId, String userContent, ChatParams params) {
         if (!StringUtils.hasText(conversationId)) {
             conversationId = UUID.randomUUID().toString();
             this.chatMemory.add(conversationId, new SystemMessage(promptTemplate));
@@ -139,12 +142,18 @@ public class ChatBotService {
         var userMessage = buildUserMessage(userContent, params);
         this.chatMemory.add(conversationId, userMessage);
         Prompt prompt = buildPrompt(conversationId);
-        var response = chatModel.call(prompt);
+        ChatBotService proxy = (ChatBotService) AopContext.currentProxy();
+        var response = proxy.aiChatV2(conversationId, prompt);
         this.chatMemory.add(conversationId, response.getResult().getOutput());
         log.info("ai response : {}", response);
         String text = response.getResult().getOutput().getText();
         log.info("Chat response: {}", text);
-        return new ChatResponse(conversationId, text);
+        return new ChatBotResponse(conversationId, text);
+    }
+
+    @AiLog(conversationId = "#conversationId")
+    public ChatResponse aiChatV2(String conversationId, Prompt prompt) {
+        return chatModel.call(prompt);
     }
 
     public Prompt buildPrompt(String conversationId) {

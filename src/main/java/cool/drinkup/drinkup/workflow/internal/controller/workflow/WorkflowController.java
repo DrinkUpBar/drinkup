@@ -98,7 +98,7 @@ public class WorkflowController {
         type = AIChatEvent.AI_CHAT,
         subType = AIChatEvent.BehaviorEvent.AI_CHAT,
         bizNo = "null",
-        success = "用户AI聊天成功, 用户请求：{{#userInput.userMessage}}, 对话请求Id:{{#userInput.conversationId}}",
+        success = "用户AI聊天成功, 用户请求：{{#userInput.userMessage}}, 对话请求Id:{{#_ret.body.data.conversationId}}",
         extra = "{{@logExtraUtil.getLogExtra(#_ret.body.data)}}"
     )
     @Operation(

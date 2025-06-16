@@ -4,7 +4,6 @@ package cool.drinkup.drinkup.workflow.internal.service;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -282,7 +281,7 @@ public class WorkflowService {
     }
 
     public WorkflowUserChatV2Resp chatV2(WorkflowUserChatV2Req userInput) {
-        ChatBotService.ChatResponse chatResponse = chatBotService.chatV2(userInput.getConversationId(),
+        ChatBotService.ChatBotResponse chatResponse = chatBotService.chatV2(userInput.getConversationId(),
                 userInput.getUserMessage(), buildChatParams(userInput));
         var json = extractJson(chatResponse.content());
         try {
