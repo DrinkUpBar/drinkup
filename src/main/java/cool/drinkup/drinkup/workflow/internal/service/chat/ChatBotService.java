@@ -31,6 +31,7 @@ import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
 import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
 import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
 import cool.drinkup.drinkup.workflow.internal.service.chat.dto.ChatParams;
+import cool.drinkup.drinkup.workflow.internal.service.chat.dto.ChatParams.ImageAttachment;
 import cool.drinkup.drinkup.workflow.internal.service.image.ImageService;
 import cool.drinkup.drinkup.workflow.internal.util.ContentTypeUtil;
 import io.micrometer.observation.annotation.Observed;
@@ -55,8 +56,9 @@ public class ChatBotService {
 
     private String promptTemplate;
 
-    public ChatBotService(@Qualifier("chatBotModel") ChatModel chatModel, @Qualifier("chatBotChatMemory") ChatMemory chatMemory, ImageService imageService,
-        ContentTypeUtil contentTypeUtil, ChatBotProperties chatBotProperties, PromptRepository promptRepository) {
+    public ChatBotService(@Qualifier("chatBotModel") ChatModel chatModel,
+            @Qualifier("chatBotChatMemory") ChatMemory chatMemory, ImageService imageService,
+            ContentTypeUtil contentTypeUtil, ChatBotProperties chatBotProperties, PromptRepository promptRepository) {
         this.chatModel = chatModel;
         this.imageService = imageService;
         this.contentTypeUtil = contentTypeUtil;
@@ -68,7 +70,7 @@ public class ChatBotService {
     @PostConstruct
     public void init() {
         PromptContent prompt = promptRepository.findByType(PromptTypeEnum.CHAT.name());
-        if (prompt == null) {
+        if ( prompt == null) {
             return;
         }
         this.promptTemplate = prompt.getSystemPrompt();
@@ -77,11 +79,9 @@ public class ChatBotService {
     public record ChatBotResponse(String conversationId, String content) {
     }
 
-    @Observed(name = "ai.chat",
-        contextualName = "AI聊天",
-        lowCardinalityKeyValues = {
+    @Observed(name = "ai.chat", contextualName = "AI聊天", lowCardinalityKeyValues = {
             "Tag", "ai"
-        })
+    })
     public String chat(List<WorkflowUserChatVo> messages, ChatParams params) {
         var prompt = buildPrompt(messages, params);
         var response = chatModel.call(prompt);
@@ -96,27 +96,27 @@ public class ChatBotService {
 
         var systemMessage = new SystemMessage(systemPrompt);
         var historyMessages = messages.stream()
-            .map(message -> {
-                if (message.getRole().equals("user")) {
-                    return new UserMessage(message.getContent());
-                } else if (message.getRole().equals("assistant")) {
-                    return new AssistantMessage(message.getContent());
-                } else {
-                    throw new IllegalArgumentException("Invalid message role: " + message.getRole());
-                }
-            })
-            .collect(Collectors.toList());
+                .map(message -> {
+                    if ( message.getRole().equals("user")) {
+                        return new UserMessage(message.getContent());
+                    } else if ( message.getRole().equals("assistant")) {
+                        return new AssistantMessage(message.getContent());
+                    } else {
+                        throw new IllegalArgumentException("Invalid message role: " + message.getRole());
+                    }
+                })
+                .collect(Collectors.toList());
 
         var allMessages = new ArrayList<Message>();
         allMessages.add(systemMessage);
         allMessages.addAll(historyMessages);
-        if (params.getImageId() != null) {
+        if ( params.getImageId() != null) {
             Resource resource = imageService.loadImage(params.getImageId());
             try {
                 String mime = contentTypeUtil.detectMimeType(resource);
                 Media media = new Media(MimeType.valueOf(mime), resource);
                 UserMessage userMessage = UserMessage.builder().text("This is the image of the user's stock: ").media(
-                    List.of(media)).build();
+                        List.of(media)).build();
                 allMessages.add(userMessage);
             } catch (IOException e) {
                 log.error("Error loading image: {}", e.getMessage());
@@ -124,18 +124,16 @@ public class ChatBotService {
         }
 
         return new Prompt(allMessages, OpenAiChatOptions.builder()
-            .model(chatBotProperties.getModel())
-            .responseFormat(ResponseFormat.builder().type(ResponseFormat.Type.JSON_OBJECT).build())
-            .build());
+                .model(chatBotProperties.getModel())
+                .responseFormat(ResponseFormat.builder().type(ResponseFormat.Type.JSON_OBJECT).build())
+                .build());
     }
 
-    @Observed(name = "ai.chat",
-        contextualName = "AI聊天",
-        lowCardinalityKeyValues = {
+    @Observed(name = "ai.chat", contextualName = "AI聊天", lowCardinalityKeyValues = {
             "Tag", "ai"
-        })
+    })
     public ChatBotResponse chatV2(String conversationId, String userContent, ChatParams params) {
-        if (!StringUtils.hasText(conversationId)) {
+        if ( !StringUtils.hasText(conversationId)) {
             conversationId = UUID.randomUUID().toString();
             this.chatMemory.add(conversationId, new SystemMessage(promptTemplate));
         }
@@ -158,28 +156,32 @@ public class ChatBotService {
 
     public Prompt buildPrompt(String conversationId) {
         return new Prompt(chatMemory.get(conversationId),
-            OpenAiChatOptions.builder()
-                .model(chatBotProperties.getModel())
-                .responseFormat(ResponseFormat.builder()
-                    .type(ResponseFormat.Type.JSON_OBJECT).build())
-                .build());
+                OpenAiChatOptions.builder()
+                        .model(chatBotProperties.getModel())
+                        .responseFormat(ResponseFormat.builder()
+                                .type(ResponseFormat.Type.JSON_OBJECT).build())
+                        .build());
     }
 
     private List<Message> buildUserMessage(String userInput, ChatParams params) {
-        if (params.getImageId() != null) {
+        if ( params.getImageAttachmentList() != null && !params.getImageAttachmentList().isEmpty()) {
             List<Message> userMessages = new ArrayList<>();
             userMessages.add(UserMessage.builder().text(userInput).build());
-            Resource resource = imageService.loadImage(params.getImageId());
-            try {
-                String mime = contentTypeUtil.detectMimeType(resource);
-                Media media = new Media(MimeType.valueOf(mime), resource);
-                userMessages.add(UserMessage.builder().text("This is the image of the user's upload: ")
-                        .media(List.of(media)).build());
-                return userMessages;
-            } catch (IOException e) {
-                log.error("Error loading image: {}", e.getMessage(), e);
-                throw new RuntimeException("Image load error");
+            for ( ImageAttachment imageAttachment : params.getImageAttachmentList()) {
+                Resource resource = imageService.loadImage(imageAttachment.getImageId());
+                try {
+                    String mime = contentTypeUtil.detectMimeType(resource);
+                    Media media = new Media(MimeType.valueOf(mime), resource);
+                    userMessages.add(UserMessage.builder()
+                            .text("This is the image of the user's uploaded. image id is "
+                                    + imageAttachment.getImageId())
+                            .media(List.of(media)).build());
+                } catch (IOException e) {
+                    log.error("Error loading image: {}", e.getMessage(), e);
+                    throw new RuntimeException("Image load error");
+                }
             }
+            return userMessages;
         } else {
             return List.of(UserMessage.builder().text(userInput).build());
         }

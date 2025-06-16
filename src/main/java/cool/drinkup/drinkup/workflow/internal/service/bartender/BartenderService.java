@@ -104,8 +104,13 @@ public class BartenderService {
     }
 
     @AiLog(conversationId = "#conversationId")
-    public ChatResponse bartenderChatV2(String conversationId, Prompt prompt) {
+    public ChatResponse bartenderChatV2(String conversationId, Prompt prompt) throws Exception {
         return chatModel.call(prompt);
+    }
+
+    @AiLog(conversationId = "#conversationId")
+    public ChatResponse bartenderChatRecoverableV2(String conversationId, Prompt prompt) throws Exception {
+        return recoverableChatModel.call(prompt);
     }
 
     @Recover
@@ -114,11 +119,11 @@ public class BartenderService {
         lowCardinalityKeyValues = {
             "Tag", "ai"
         })
-    public String generateDrinkRecoverableV2(RetryException exception, String conversationId, BartenderParams bartenderParams) {
+    public String generateDrinkV2(RetryException exception, String conversationId, BartenderParams bartenderParams) {
         try {
             var prompt = buildPromptV2(conversationId, bartenderParams);
             BartenderService proxy = (BartenderService) AopContext.currentProxy();
-            var response = proxy.bartenderChatV2(conversationId, prompt);
+            var response = proxy.bartenderChatRecoverableV2(conversationId, prompt);
             log.info("bartender response: {}", response);
             if (response.getResult() == null) {
                 log.error("AI response result is null. Response details: {}", response);
@@ -187,32 +192,30 @@ public class BartenderService {
         }
     }
 
-    @Deprecated
-    @Recover
-    @Observed(name = "ai.bartender.chat",
-        contextualName = "Bartender聊天重试",
-        lowCardinalityKeyValues = {
-            "Tag", "ai"
-        })
-    public String generateDrinkRecoverable(RetryException exception, List<WorkflowBartenderChatVo> messages, BartenderParams bartenderParams) {
-        try {
-            var prompt = buildPrompt(messages, bartenderParams);
-            var response = recoverableChatModel.call(prompt);
-            log.info("bartender response: {}", response);
-
-            if (response.getResult() == null) {
-                log.error("AI response result is null. Response details: {}", response);
-                throw new RuntimeException("AI response result is null");
-            }
-
-            String text = response.getResult().getOutput().getText();
-            log.info("Chat response: {}", text);
-            return text;
-        } catch (Exception e) {
-            log.error("Error generating drink recommendation", e);
-            throw new RuntimeException("Error generating drink recommendation after retry");
-        }
-    }
+    // Commented out to prevent Spring Retry from incorrectly matching this to generateDrinkV2
+    // This recover method is only for the deprecated generateDrink method
+    /*
+     * @Deprecated
+     * 
+     * @Recover
+     * 
+     * @Observed(name = "ai.bartender.chat", contextualName = "Bartender聊天重试", lowCardinalityKeyValues = { "Tag", "ai"
+     * }) public String generateDrinkRecoverable(RetryException exception, List<WorkflowBartenderChatVo> messages,
+     * BartenderParams bartenderParams) { // This method is deprecated and should not be used for generateDrinkV2
+     * recovery // Only for the deprecated generateDrink method if ( messages == null) {
+     * log.error("Messages is null in deprecated recover method, this should not happen for V2 methods"); throw new
+     * RuntimeException("Invalid recovery method called for V2 API"); }
+     * 
+     * try { var prompt = buildPrompt(messages, bartenderParams); var response = recoverableChatModel.call(prompt);
+     * log.info("bartender response: {}", response);
+     * 
+     * if (response.getResult() == null) { log.error("AI response result is null. Response details: {}", response);
+     * throw new RuntimeException("AI response result is null"); }
+     * 
+     * String text = response.getResult().getOutput().getText(); log.info("Chat response: {}", text); return text; }
+     * catch (Exception e) { log.error("Error generating drink recommendation", e); throw new
+     * RuntimeException("Error generating drink recommendation after retry"); } }
+     */
 
     private Prompt buildPrompt(List<WorkflowBartenderChatVo> messages, BartenderParams bartenderParams) {
         Map<String, String> substituterMap = bartenderParams.toSubstituterMap();
