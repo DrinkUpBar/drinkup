@@ -14,10 +14,4 @@ public class WorkflowTranslateReq {
     @Size(max = 5000, message = "翻译文本长度不能超过5000字符")
     @Schema(description = "待翻译的文本", example = "金酒")
     private String text;
-    
-    @Schema(description = "目标语言", example = "english", defaultValue = "english")
-    private String targetLanguage = "english";
-    
-    @Schema(description = "翻译场景", example = "cocktail", defaultValue = "cocktail")
-    private String scene = "cocktail";
 } 

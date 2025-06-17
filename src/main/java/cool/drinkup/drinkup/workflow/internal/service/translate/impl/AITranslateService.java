@@ -3,11 +3,13 @@ package cool.drinkup.drinkup.workflow.internal.service.translate.impl;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import cool.drinkup.drinkup.workflow.internal.config.AITranslateProperties;
 import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
 import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
 import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
@@ -23,6 +25,8 @@ public class AITranslateService implements TranslateService {
     
     private final ChatModel translateChatModel;
 
+    private final AITranslateProperties aiTranslateProperties;
+
     private final PromptRepository promptRepository;
 
     private String promptTemplate;
@@ -37,23 +41,21 @@ public class AITranslateService implements TranslateService {
     }
 
     @Override
-    public String translate(String text, String targetLanguage, String scene) {
+    public String translate(String text) {
         if (promptTemplate == null) {
             log.warn("翻译提示词模板未找到，使用默认翻译");
             return text;
         }
         
         // 构建系统提示词，替换占位符
-        String systemPrompt = promptTemplate
-            .replace("{text}", text)
-            .replace("{targetLanguage}", targetLanguage)
-            .replace("{scene}", scene != null ? scene : "通用场景");
+        String systemPrompt = promptTemplate;
         
         // 构建 Prompt
         var systemMessage = new SystemMessage(systemPrompt);
-        var userMessage = new UserMessage("请翻译以上内容到" + targetLanguage);
-        var prompt = new Prompt(List.of(systemMessage, userMessage));
-        
+        var userMessage = new UserMessage(text);
+        var prompt = new Prompt(List.of(systemMessage, userMessage),
+                ChatOptions.builder().model(aiTranslateProperties.getModel()).build());
+
         try {
             // 调用 AI 模型进行翻译
             var response = translateChatModel.call(prompt);

@@ -4,6 +4,7 @@ package cool.drinkup.drinkup.workflow.internal.service;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -240,12 +241,10 @@ public class WorkflowService {
 
             // 调用AI翻译服务
             String translatedText = translateService.translate(
-                    req.getText(),
-                    req.getTargetLanguage(),
-                    req.getScene());
+                    req.getText());
 
             WorkflowTranslateResp resp = new WorkflowTranslateResp();
-            resp.setTranslatedText(translatedText);
+            resp.setTranslatedText(translatedText.trim());
 
             return resp;
         } catch (Exception e) {
