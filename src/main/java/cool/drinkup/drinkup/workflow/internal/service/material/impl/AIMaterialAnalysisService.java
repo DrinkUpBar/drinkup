@@ -43,9 +43,9 @@ public class AIMaterialAnalysisService implements MaterialAnalysisService {
     }
 
     private Prompt buildPrompt(String materialText) {
-        String systemPrompt = promptTemplate.replace("{material_text}", materialText);
+        String systemPrompt = promptTemplate;
         var systemMessage = new SystemMessage(systemPrompt);
-        var userMessage = new UserMessage("Analyze the material ");
+        var userMessage = new UserMessage("现在介绍一下: " + materialText);
         return new Prompt(List.of(systemMessage, userMessage));
     }
 

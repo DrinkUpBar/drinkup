@@ -234,8 +234,8 @@ public class WorkflowController {
         type = AIChatEvent.AI_CHAT,
         subType = AIChatEvent.MaterialEvent.MATERIAL_ANALYSIS,
         bizNo = "null",
-        success = "AI材料解读成功，解读材料ID：{{#materialReq.materialId}}",
-        extra = "{{@logExtraUtil.getLogExtra(#materialReq)}}"
+            success = "AI材料解读成功，解读材料",
+                extra = "{{@logExtraUtil.getLogExtra(#materialReq)}}"
     )
     @Operation(
         summary = "AI材料解读",
