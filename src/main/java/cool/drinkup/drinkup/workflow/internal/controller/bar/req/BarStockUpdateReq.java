@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class BarStockUpdateReq {
     private String name;
+    private String nameEn;
     private String type;
     private String iconType;
     private String description;

@@ -38,6 +38,9 @@ public class BarStockService {
         if (barStockUpdateReq.getName() != null) {
             barStock.setName(barStockUpdateReq.getName());
         }
+        if ( barStockUpdateReq.getNameEn() != null) {
+            barStock.setNameEn(barStockUpdateReq.getNameEn());
+        }
         if (barStockUpdateReq.getType() != null) {
             barStock.setType(barStockUpdateReq.getType());
         }

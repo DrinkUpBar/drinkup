@@ -30,6 +30,7 @@ public interface BatStockMapper {
             bar.setId(barId);
             barStock.setBar(bar);
             barStock.setName(item.getName());
+            barStock.setNameEn(item.getNameEn());
             barStock.setType(item.getType());
             barStock.setIconType(item.getIconType());
             barStock.setDescription(item.getDescription());

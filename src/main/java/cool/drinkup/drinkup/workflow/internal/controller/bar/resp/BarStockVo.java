@@ -16,6 +16,8 @@ public class BarStockVo {
 
     private String name;
 
+    private String nameEn;
+
     private String type;
 
     private String iconType;

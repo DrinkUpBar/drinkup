@@ -179,6 +179,7 @@ public class ImageRecognitionService {
             for (InnerBarStockCreateReq item : stockItems) {
                 BarStock stock = new BarStock();
                 stock.setName(item.getName());
+                stock.setNameEn(item.getNameEn());
                 stock.setType(item.getType());
                 stock.setIconType(item.getIconType());
                 stock.setDescription(item.getDescription());
