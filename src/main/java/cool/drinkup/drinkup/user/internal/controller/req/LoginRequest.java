@@ -12,7 +12,7 @@ import lombok.Data;
 public class LoginRequest {
 
     @NotNull(message = "登录类型不能为空")
-    @Schema(description = "登录类型", example = "SMS", allowableValues = {"SMS", "GOOGLE"})
+    @Schema(description = "登录类型", example = "SMS", allowableValues = { "SMS", "GOOGLE", "APPLE" })
     private LoginType loginType = LoginType.SMS;
 
     // 手机号登录相关字段
@@ -28,7 +28,8 @@ public class LoginRequest {
     // 枚举定义登录类型
     public enum LoginType {
         SMS("手机号验证码登录"),
-        GOOGLE("Google 登录");
+        GOOGLE("Google 登录"),
+        APPLE("Apple 登录");
 
         private final String description;
 

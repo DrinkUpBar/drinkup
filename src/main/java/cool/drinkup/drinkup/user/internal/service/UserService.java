@@ -34,6 +34,10 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    /**
+     * @deprecated 使用 UserOAuthService.findUserByOAuth 代替
+     */
+    @Deprecated
     @Transactional(readOnly = true)
     public Optional<User> findByOauthId(String oauthId, OAuthTypeEnum oauthType) {
         return userRepository.findByOauthIdAndOauthType(oauthId, oauthType);

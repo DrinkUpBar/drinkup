@@ -5,8 +5,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Set;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -18,6 +20,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -45,12 +48,28 @@ public class User {
     @Column(nullable = true, unique = true)
     private String email;
 
+    /**
+     * @deprecated 使用 oauthBindings 代替，保留此字段用于向后兼容
+     *             将在后续版本中移除
+     */
+    @Deprecated
     @Column(nullable = true)
     private String oauthId;
 
+    /**
+     * @deprecated 使用 oauthBindings 代替，保留此字段用于向后兼容
+     *             将在后续版本中移除
+     */
+    @Deprecated
     @Enumerated(EnumType.STRING)
     @Column(nullable = true)
     private OAuthTypeEnum oauthType;
+
+    /**
+     * 用户的OAuth绑定列表，支持多种OAuth方式登录
+     */
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<UserOAuth> oauthBindings;
 
     @Column(nullable = true)
     private String avatar;
@@ -75,4 +94,42 @@ public class User {
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
     private Set<String> roles;
+
+    /**
+     * 获取主要的OAuth绑定
+     */
+    public UserOAuth getPrimaryOAuthBinding() {
+        if ( oauthBindings == null) {
+            return null;
+        }
+        return oauthBindings.stream()
+                .filter(UserOAuth::isPrimary)
+                .filter(UserOAuth::isEnabled)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * 检查是否绑定了指定类型的OAuth
+     */
+    public boolean hasOAuthBinding(OAuthTypeEnum oauthType) {
+        if ( oauthBindings == null) {
+            return false;
+        }
+        return oauthBindings.stream()
+                .anyMatch(binding -> binding.getOauthType() == oauthType && binding.isEnabled());
+    }
+
+    /**
+     * 获取指定类型的OAuth绑定
+     */
+    public UserOAuth getOAuthBinding(OAuthTypeEnum oauthType) {
+        if ( oauthBindings == null) {
+            return null;
+        }
+        return oauthBindings.stream()
+                .filter(binding -> binding.getOauthType() == oauthType && binding.isEnabled())
+                .findFirst()
+                .orElse(null);
+    }
 } 

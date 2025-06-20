@@ -78,7 +78,7 @@ public class AuthController {
         bizNo = "{{#_ret.body.data.user.id}}",
         success = "用户{{#_ret.body.data.user.id}}登录成功"
     )
-    @Operation(summary = "用户登录", description = "支持多种登录方式：手机号验证码登录和 Google 登录")
+    @Operation(summary = "用户登录", description = "支持多种登录方式：手机号验证码登录、Google 登录和 Apple 登录")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "登录成功"),
             @ApiResponse(responseCode = "400", description = "登录失败，参数错误或凭据无效"),
@@ -86,7 +86,7 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<CommonResp<UserLoginResp>> login(
-            @Parameter(description = "登录信息，支持手机号验证码登录和 Google 登录") 
+            @Parameter(description = "登录信息，支持手机号验证码登录、Google 登录和 Apple 登录") 
             @Valid @RequestBody LoginRequest loginRequest,
             HttpServletRequest request) {
 
