@@ -57,6 +57,7 @@ public class FalImageGenerator implements ImageGenerator {
         }
         var output = falClient.queue().result(this.falProperties.getEndpointId(), QueueResultOptions.withRequestId(requestId));
         JsonObject data = output.getData();
+        log.info("Fal image generation result: {}", data.toString());
         var images = data.getAsJsonArray("images");
         var firstImage = images.get(0).getAsJsonObject();
         return firstImage.get("url").getAsString();

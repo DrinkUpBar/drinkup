@@ -7,48 +7,46 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import cool.drinkup.drinkup.infrastructure.spi.ImageGenerator;
+import cool.drinkup.drinkup.workflow.internal.exception.RetryException;
 import io.micrometer.observation.annotation.Observed;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import software.amazon.awssdk.core.exception.RetryableException;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class ImageGenerateService {
 
-    @Qualifier("glifImageGenerator")
     private final ImageGenerator glifImageGenerator;
 
-    @Qualifier("falImageGenerator")
     private final ImageGenerator falImageGenerator;
 
-    @Retryable(
-        value = {RetryableException.class},
-        maxAttempts = 3,
-        backoff = @Backoff(delay = 1000)
-    )
-    @Observed(name = "image.generate",
-                contextualName = "生成图片",
-            lowCardinalityKeyValues = {
-                "Tag", "image",
-                "Server", "glif"
-            })
-    public String generateImage(String prompt) {
-        return glifImageGenerator.generateImage(prompt);
+    public ImageGenerateService(@Qualifier("glifImageGenerator") ImageGenerator glifImageGenerator,
+            @Qualifier("falImageGenerator") ImageGenerator falImageGenerator) {
+        this.glifImageGenerator = glifImageGenerator;
+        this.falImageGenerator = falImageGenerator;
     }
 
-    @Observed(name = "image.generate",
-                contextualName = "生成图片",
-            lowCardinalityKeyValues = {
-                "Tag", "image",
-                "Server", "fal"
-            })
+    @Retryable(value = {
+            RetryException.class }, maxAttempts = 1, backoff = @Backoff(delay = 1000))
+    @Observed(name = "image.generate", contextualName = "生成图片", lowCardinalityKeyValues = {
+            "Tag", "image",
+            "Server", "glif"
+    })
+    public String generateImage(String prompt) {
+        try {
+            return glifImageGenerator.generateImage(prompt);
+        } catch (Exception e) {
+            throw new RetryException(e.getMessage());
+        }
+    }
+
+    @Observed(name = "image.generate", contextualName = "生成图片", lowCardinalityKeyValues = {
+            "Tag", "image",
+            "Server", "fal"
+    })
     @Recover
-    public String recover(RetryableException e, String prompt) {
+    public String recover(RetryException e, String prompt) {
         log.warn("glif generate image failed, use fal to generate image");
         return falImageGenerator.generateImage(prompt);
     }
-
 
 }
