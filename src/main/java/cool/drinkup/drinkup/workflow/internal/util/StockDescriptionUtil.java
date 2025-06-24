@@ -1,6 +1,7 @@
 package cool.drinkup.drinkup.workflow.internal.util;
 
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +30,12 @@ public class StockDescriptionUtil {
             description.append("库存名称: ").append(bar.getName()).append("\n");
             description.append("库存材料: ");
             String filteredStocks = bar.getBarStocks().stream()
-                    .filter(barStock -> selectedStockIdList.contains(barStock.getId()))
+                    .filter(barStock -> {
+                        if (CollectionUtils.isEmpty(selectedStockIdList)) {
+                            return true;
+                        }
+                        return selectedStockIdList.contains(barStock.getId());
+                    })
                     .map(barStock -> barStock.getBarStockDescription())
                     .collect(Collectors.joining(", "));
 

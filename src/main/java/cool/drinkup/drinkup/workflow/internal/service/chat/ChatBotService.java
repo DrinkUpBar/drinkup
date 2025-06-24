@@ -135,7 +135,8 @@ public class ChatBotService {
     public ChatBotResponse chatV2(String conversationId, String userContent, ChatParams params) {
         if ( !StringUtils.hasText(conversationId)) {
             conversationId = UUID.randomUUID().toString();
-            this.chatMemory.add(conversationId, new SystemMessage(promptTemplate));
+            SystemMessage message = buildSystemMessage(params);
+            this.chatMemory.add(conversationId, message);
         }
         var userMessageList = buildUserMessage(userContent, params);
         this.chatMemory.add(conversationId, userMessageList);
@@ -152,6 +153,11 @@ public class ChatBotService {
     @AiLog(conversationId = "#conversationId")
     public ChatResponse aiChatV2(String conversationId, Prompt prompt) {
         return chatModel.call(prompt);
+    }
+
+    private SystemMessage buildSystemMessage(ChatParams params) {
+        String systemPrompt = promptTemplate.replace("${userStock}", params.getUserStock());
+        return new SystemMessage(systemPrompt);
     }
 
     public Prompt buildPrompt(String conversationId) {
