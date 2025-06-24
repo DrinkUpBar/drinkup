@@ -42,3 +42,4 @@ src/main/resources/application-dev.yaml
 /docs/
 /logs/
 /config/
+.*/
