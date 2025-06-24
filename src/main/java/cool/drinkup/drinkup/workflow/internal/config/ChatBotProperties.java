@@ -23,7 +23,7 @@ public class ChatBotProperties {
 
     @Data
     public static class MemoryProperties {
-        private int maxMessages = 50;
+        private int maxMessages = 10;
     }
 
     @Bean

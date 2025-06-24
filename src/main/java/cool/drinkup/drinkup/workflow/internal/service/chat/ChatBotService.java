@@ -70,7 +70,7 @@ public class ChatBotService {
     @PostConstruct
     public void init() {
         PromptContent prompt = promptRepository.findByType(PromptTypeEnum.CHAT.name());
-        if ( prompt == null) {
+        if (prompt == null) {
             return;
         }
         this.promptTemplate = prompt.getSystemPrompt();
@@ -92,14 +92,12 @@ public class ChatBotService {
     }
 
     private Prompt buildPrompt(List<WorkflowUserChatVo> messages, ChatParams params) {
-        String systemPrompt = promptTemplate.replace("{userStock}", params.getUserStock());
-
-        var systemMessage = new SystemMessage(systemPrompt);
+        var systemMessage = buildSystemMessage(params);
         var historyMessages = messages.stream()
                 .map(message -> {
-                    if ( message.getRole().equals("user")) {
+                    if (message.getRole().equals("user")) {
                         return new UserMessage(message.getContent());
-                    } else if ( message.getRole().equals("assistant")) {
+                    } else if (message.getRole().equals("assistant")) {
                         return new AssistantMessage(message.getContent());
                     } else {
                         throw new IllegalArgumentException("Invalid message role: " + message.getRole());
@@ -110,7 +108,7 @@ public class ChatBotService {
         var allMessages = new ArrayList<Message>();
         allMessages.add(systemMessage);
         allMessages.addAll(historyMessages);
-        if ( params.getImageId() != null) {
+        if (params.getImageId() != null) {
             Resource resource = imageService.loadImage(params.getImageId());
             try {
                 String mime = contentTypeUtil.detectMimeType(resource);
@@ -133,14 +131,14 @@ public class ChatBotService {
             "Tag", "ai"
     })
     public ChatBotResponse chatV2(String conversationId, String userContent, ChatParams params) {
-        if ( !StringUtils.hasText(conversationId)) {
+        if (!StringUtils.hasText(conversationId)) {
             conversationId = UUID.randomUUID().toString();
             SystemMessage message = buildSystemMessage(params);
             this.chatMemory.add(conversationId, message);
         }
         var userMessageList = buildUserMessage(userContent, params);
         this.chatMemory.add(conversationId, userMessageList);
-        Prompt prompt = buildPrompt(conversationId);
+        Prompt prompt = buildPrompt(conversationId, params);
         ChatBotService proxy = (ChatBotService) AopContext.currentProxy();
         var response = proxy.aiChatV2(conversationId, prompt);
         this.chatMemory.add(conversationId, response.getResult().getOutput());
@@ -160,8 +158,37 @@ public class ChatBotService {
         return new SystemMessage(systemPrompt);
     }
 
-    public Prompt buildPrompt(String conversationId) {
-        return new Prompt(chatMemory.get(conversationId),
+    /**
+             * 动态更新指定对话中的 SystemMessage
+     * 
+     * @param conversationId 对话ID
+     * @param params         包含新的 userStock 的参数
+     */
+    public List<Message> updateSystemMessage(String conversationId, ChatParams params) {
+        List<Message> messages = chatMemory.get(conversationId);
+        if (messages == null || messages.isEmpty()) {
+            log.warn("对话 {} 不存在或为空，无法更新 SystemMessage", conversationId);
+            return messages;
+        }
+
+        // 查找并替换第一个 SystemMessage
+        for (int i = 0; i < messages.size(); i++) {
+            if (messages.get(i) instanceof SystemMessage) {
+                SystemMessage newSystemMessage = buildSystemMessage(params);
+                messages.set(i, newSystemMessage);
+                log.info("已更新对话 {} 的 SystemMessage，新的 userStock: {}", conversationId, params.getUserStock());
+                return messages;
+            }
+        }
+
+        log.warn("对话 {} 中未找到 SystemMessage", conversationId);
+        return messages;
+    }
+
+    public Prompt buildPrompt(String conversationId, ChatParams params) {
+        List<Message> messages = updateSystemMessage(conversationId, params);
+
+        return new Prompt(messages,
                 OpenAiChatOptions.builder()
                         .model(chatBotProperties.getModel())
                         .responseFormat(ResponseFormat.builder()
@@ -170,10 +197,10 @@ public class ChatBotService {
     }
 
     private List<Message> buildUserMessage(String userInput, ChatParams params) {
-        if ( params.getImageAttachmentList() != null && !params.getImageAttachmentList().isEmpty()) {
+        if (params.getImageAttachmentList() != null && !params.getImageAttachmentList().isEmpty()) {
             List<Message> userMessages = new ArrayList<>();
             userMessages.add(UserMessage.builder().text(userInput).build());
-            for ( ImageAttachment imageAttachment : params.getImageAttachmentList()) {
+            for (ImageAttachment imageAttachment : params.getImageAttachmentList()) {
                 Resource resource = imageService.loadImage(imageAttachment.getImageId());
                 try {
                     String mime = contentTypeUtil.detectMimeType(resource);
