@@ -9,11 +9,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.security.PublicKey;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import cool.drinkup.drinkup.user.internal.config.AppleOAuthConfig;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.IncorrectClaimException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
@@ -123,25 +125,62 @@ public class AppleTokenService {
      */
     private Claims parseAndValidateJwt(String idToken, PublicKey publicKey) {
         try {
-            // 使用JJWT库解析和验证JWT
-            JwtParser parser = Jwts.parser()
-                    .verifyWith(publicKey)
-                    .requireIssuer("https://appleid.apple.com")
-                    .requireAudience(appleOAuthConfig.getClientId())
-                    .build();
+            // 获取所有有效的客户端ID列表
+            List<String> validClientIds = appleOAuthConfig.getAllClientIds();
+            if (validClientIds.isEmpty()) {
+                log.error("未配置有效的Apple客户端ID");
+                return null;
+            }
 
-            Jws<Claims> jws = parser.parseSignedClaims(idToken);
-            Claims claims = jws.getPayload();
+            log.debug("开始验证JWT，支持的客户端ID数量: {}", validClientIds.size());
+
+            // 尝试使用每个客户端ID进行验证
+            Claims validClaims = null;
+            String matchedClientId = null;
+
+            for (String clientId : validClientIds) {
+                try {
+                    // 使用当前客户端ID构建解析器
+                    JwtParser parser = Jwts.parser()
+                            .verifyWith(publicKey)
+                            .requireIssuer("https://appleid.apple.com")
+                            .requireAudience(clientId)
+                            .build();
+
+                    Jws<Claims> jws = parser.parseSignedClaims(idToken);
+                    validClaims = jws.getPayload();
+                    matchedClientId = clientId;
+
+                    log.info("JWT验证成功，匹配的客户端ID: {}", clientId);
+                    break; // 找到匹配的客户端ID，退出循环
+
+                } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException | UnsupportedJwtException
+                        | IllegalArgumentException | IncorrectClaimException e) {
+                    // 这些异常表示当前客户端ID不匹配，继续尝试下一个
+                    log.debug("客户端ID {} 验证失败: {}", clientId, e.getMessage());
+                    continue;
+                } catch (ExpiredJwtException e) {
+                    // Token已过期，无论哪个客户端ID都会失败
+                    log.error("JWT已过期: {}", e.getMessage());
+                    return null;
+                }
+            }
+
+            // 如果所有客户端ID都验证失败
+            if (validClaims == null) {
+                log.error("JWT验证失败，Token的受众(audience)不匹配任何配置的客户端ID");
+                return null;
+            }
 
             // 额外验证过期时间（JJWT会自动验证，这里是双重保险）
-            Date expiration = claims.getExpiration();
+            Date expiration = validClaims.getExpiration();
             if (expiration != null && expiration.before(new Date())) {
                 log.error("Token已过期: {}", expiration);
                 return null;
             }
 
-            log.info("JWT签名验证成功");
-            return claims;
+            log.info("JWT签名验证成功，使用的客户端ID: {}", matchedClientId);
+            return validClaims;
 
         } catch (ExpiredJwtException e) {
             log.error("JWT已过期: {}", e.getMessage());
