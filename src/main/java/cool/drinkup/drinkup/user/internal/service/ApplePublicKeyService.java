@@ -2,7 +2,7 @@ package cool.drinkup.drinkup.user.internal.service;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -29,7 +29,7 @@ public class ApplePublicKeyService {
 
     private static final String APPLE_PUBLIC_KEYS_URL = "https://appleid.apple.com/auth/keys";
 
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
     private final ObjectMapper objectMapper;
 
     // 内存缓存，存储公钥
@@ -105,7 +105,10 @@ public class ApplePublicKeyService {
      */
     private ApplePublicKey getApplePublicKeys() {
         try {
-            String response = restTemplate.getForObject(APPLE_PUBLIC_KEYS_URL, String.class);
+            String response = restClient.get()
+                    .uri(APPLE_PUBLIC_KEYS_URL)
+                    .retrieve()
+                    .body(String.class);
             return objectMapper.readValue(response, ApplePublicKey.class);
         } catch (Exception e) {
             log.error("获取Apple公钥列表失败: {}", e.getMessage(), e);

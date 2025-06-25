@@ -24,6 +24,7 @@ public interface UserMapper {
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "oauthId", ignore = true)
     @Mapping(target = "oauthType", ignore = true)
+    @Mapping(target = "oauthBindings", ignore = true)
     User toUser(LoginRequest loginRequest);
 
     UserProfileResp toUserProfileResp(User user);
