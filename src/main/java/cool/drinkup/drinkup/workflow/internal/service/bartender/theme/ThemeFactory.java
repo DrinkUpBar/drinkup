@@ -1,7 +1,5 @@
 package cool.drinkup.drinkup.workflow.internal.service.bartender.theme;
 
-import org.springframework.stereotype.Component;
-
 import cool.drinkup.drinkup.workflow.internal.service.bartender.theme.impl.CyberWorkTheme;
 import cool.drinkup.drinkup.workflow.internal.service.bartender.theme.impl.DummyTheme;
 import cool.drinkup.drinkup.workflow.internal.service.bartender.theme.impl.MovieTheme;
@@ -9,6 +7,7 @@ import cool.drinkup.drinkup.workflow.internal.service.bartender.theme.impl.Philo
 import cool.drinkup.drinkup.workflow.internal.service.bartender.theme.impl.RandomTheme;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -19,7 +18,7 @@ public class ThemeFactory {
     private final MovieTheme movieTheme;
     private final RandomTheme randomTheme;
     private final DummyTheme dummyTheme;
-    
+
     public Theme getTheme(@Nullable ThemeEnum themeEnum) {
         if (themeEnum == null) {
             return dummyTheme;

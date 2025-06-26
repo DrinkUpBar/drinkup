@@ -1,13 +1,12 @@
 package cool.drinkup.drinkup.user.internal.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
 import cool.drinkup.drinkup.user.internal.controller.req.LoginRequest;
 import cool.drinkup.drinkup.user.internal.controller.resp.UserProfileResp;
 import cool.drinkup.drinkup.user.internal.model.DrinkupUserDetails;
 import cool.drinkup.drinkup.user.internal.model.User;
 import cool.drinkup.drinkup.user.spi.AuthenticatedUserDTO;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {

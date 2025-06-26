@@ -1,18 +1,7 @@
- 
 package cool.drinkup.drinkup.workflow.internal.service;
-
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 import cool.drinkup.drinkup.shared.dto.UserWine;
 import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
 import cool.drinkup.drinkup.wine.spi.UserWineServiceFacade;
@@ -58,8 +47,15 @@ import cool.drinkup.drinkup.workflow.internal.service.material.MaterialService;
 import cool.drinkup.drinkup.workflow.internal.service.stock.BarStockService;
 import cool.drinkup.drinkup.workflow.internal.service.translate.TranslateService;
 import cool.drinkup.drinkup.workflow.internal.util.StockDescriptionUtil;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 
 @Slf4j
@@ -103,7 +99,7 @@ public class WorkflowService {
     }
 
     private String extractJson(String chatWithUser) {
-        if ( !chatWithUser.contains("```json")) {
+        if (!chatWithUser.contains("```json")) {
             return chatWithUser;
         }
         // Extract JSON content between ```json and ``` markers
@@ -111,7 +107,7 @@ public class WorkflowService {
         Pattern pattern = Pattern.compile(jsonPattern, Pattern.DOTALL);
         Matcher matcher = pattern.matcher(chatWithUser);
 
-        if ( matcher.find()) {
+        if (matcher.find()) {
             return matcher.group(1).trim();
         }
 
@@ -142,11 +138,11 @@ public class WorkflowService {
     }
 
     private BartenderParams buildBartenderParams(WorkflowBartenderChatV2Req bartenderInput) {
-            Theme theme = themeFactory.getTheme(ThemeEnum.fromValue(bartenderInput.getTheme()));
-            return BartenderParams.builder()
-                    .userStock(buildStockDescription(bartenderInput.getAttachment()))
-                    .userDemand(bartenderInput.getUserDemand())
-                    .theme(theme.getName())
+        Theme theme = themeFactory.getTheme(ThemeEnum.fromValue(bartenderInput.getTheme()));
+        return BartenderParams.builder()
+                .userStock(buildStockDescription(bartenderInput.getAttachment()))
+                .userDemand(bartenderInput.getUserDemand())
+                .theme(theme.getName())
                 .build();
     }
 
@@ -182,19 +178,17 @@ public class WorkflowService {
         String userStock = buildBarDescription(userBars);
         Theme theme = themeFactory.getTheme(ThemeEnum.fromValue(bartenderInput.getTheme()));
         return BartenderParams.builder()
-            .userStock(userStock)
-            .userDemand(bartenderInput.getUserDemand())
-            .theme(theme.getName())
-            .build();
+                .userStock(userStock)
+                .userDemand(bartenderInput.getUserDemand())
+                .theme(theme.getName())
+                .build();
     }
 
     private String buildBarDescription(List<Bar> bars) {
-        if ( CollectionUtils.isEmpty(bars)) {
+        if (CollectionUtils.isEmpty(bars)) {
             return "null";
         }
-        return bars.stream()
-                .map(Bar::getBarDescription)
-                .collect(Collectors.joining("\n"));
+        return bars.stream().map(Bar::getBarDescription).collect(Collectors.joining("\n"));
     }
 
     public WorkflowStockRecognitionResp recognizeStock(WorkflowStockRecognitionReq req) {
@@ -223,7 +217,8 @@ public class WorkflowService {
     }
 
     public Flux<WorkflowStockRecognitionStreamResp> recognizeStockStream(WorkflowStockRecognitionStreamReq req) {
-        return imageRecognitionService.recognizeStockFromImageStream(req.getImageId())
+        return imageRecognitionService
+                .recognizeStockFromImageStream(req.getImageId())
                 .map(result -> {
                     WorkflowStockRecognitionStreamResp resp = new WorkflowStockRecognitionStreamResp();
                     resp.setDone(result.isDone());
@@ -240,8 +235,7 @@ public class WorkflowService {
         try {
 
             // 调用AI翻译服务
-            String translatedText = translateService.translate(
-                    req.getText());
+            String translatedText = translateService.translate(req.getText());
 
             WorkflowTranslateResp resp = new WorkflowTranslateResp();
             resp.setTranslatedText(translatedText.trim());
@@ -256,7 +250,7 @@ public class WorkflowService {
     public WorkflowMaterialAnalysisResp analyzeMaterial(WorkflowMaterialAnalysisReq materialReq) {
         String materialText = getMaterialText(materialReq);
         MaterialAnalysisResult result = materialAnalysisService.analyzeMaterial(materialText);
-        if ( result == null) {
+        if (result == null) {
             return null;
         }
         WorkflowMaterialAnalysisResp resp = new WorkflowMaterialAnalysisResp();
@@ -268,20 +262,22 @@ public class WorkflowService {
         if (materialReq.getItem() == null) {
             return materialReq.getText();
         }
-        if ( materialReq.getItem().getType().equalsIgnoreCase(WorkflowConstant.MATERIAL_TAG)) {
-            Material material = materialService.getMaterialById(materialReq.getItem().getId());
+        if (materialReq.getItem().getType().equalsIgnoreCase(WorkflowConstant.MATERIAL_TAG)) {
+            Material material =
+                    materialService.getMaterialById(materialReq.getItem().getId());
             return material.getName();
         }
-        if ( materialReq.getItem().getType().equalsIgnoreCase(WorkflowConstant.BAR_STOCK_TAG)) {
-            BarStock barStock = barStockService.getBarStockById(materialReq.getItem().getId());
+        if (materialReq.getItem().getType().equalsIgnoreCase(WorkflowConstant.BAR_STOCK_TAG)) {
+            BarStock barStock =
+                    barStockService.getBarStockById(materialReq.getItem().getId());
             return barStock.getName();
         }
         throw new RuntimeException("Invalid material analysis type: " + materialReq);
     }
 
     public WorkflowUserChatV2Resp chatV2(WorkflowUserChatV2Req userInput) {
-        ChatBotService.ChatBotResponse chatResponse = chatBotService.chatV2(userInput.getConversationId(),
-                userInput.getUserMessage(), buildChatParams(userInput));
+        ChatBotService.ChatBotResponse chatResponse = chatBotService.chatV2(
+                userInput.getConversationId(), userInput.getUserMessage(), buildChatParams(userInput));
         var json = extractJson(chatResponse.content());
         try {
             var chatBotResponse = objectMapper.readValue(json, WorkflowUserChatV2Resp.class);
@@ -291,19 +287,21 @@ public class WorkflowService {
             log.error("Error parsing JSON: {}", e.getMessage(), e);
             return null;
         }
-
     }
 
     private ChatParams buildChatParams(WorkflowUserChatV2Req userInput) {
-        List<ImageAttachment> imageAttachmentList = userInput.getAttachment()
-                .getImageAttachmentList();
-        List<ChatParams.ImageAttachment> imageAttachments = imageAttachmentList.stream().map(
-                imageAttachment -> ChatParams.ImageAttachment.builder().imageId(
-                        imageAttachment.getImageId()).build())
+        List<ImageAttachment> imageAttachmentList = userInput.getAttachment().getImageAttachmentList();
+        List<ChatParams.ImageAttachment> imageAttachments = imageAttachmentList.stream()
+                .map(imageAttachment -> ChatParams.ImageAttachment.builder()
+                        .imageId(imageAttachment.getImageId())
+                        .build())
                 .toList();
         return ChatParams.builder()
                 .userStock(buildStockDescription(userInput.getAttachment()))
-                .imageId(!imageAttachmentList.isEmpty() ? imageAttachmentList.getFirst().getImageId() : null)
+                .imageId(
+                        !imageAttachmentList.isEmpty()
+                                ? imageAttachmentList.getFirst().getImageId()
+                                : null)
                 .imageAttachmentList(imageAttachments)
                 .build();
     }
@@ -312,25 +310,25 @@ public class WorkflowService {
         StringBuilder stockDescription = new StringBuilder();
         stockDescription.append("用户选取的所有材料如下：\n");
         List<BarAttachment> barAttachmentList = attachment.getBarAttachmentList();
-        if ( barAttachmentList != null && !barAttachmentList.isEmpty()) {
+        if (barAttachmentList != null && !barAttachmentList.isEmpty()) {
             stockDescription.append("用户选取的库存材料如下：\n");
-            for ( BarAttachment barAttachment : barAttachmentList) {
+            for (BarAttachment barAttachment : barAttachmentList) {
                 stockDescription
-                        .append(stockDescriptionUtil.getBarStockDescription(barAttachment.getBarId(),
-                                barAttachment.getSelectedStockIdList()))
+                        .append(stockDescriptionUtil.getBarStockDescription(
+                                barAttachment.getBarId(), barAttachment.getSelectedStockIdList()))
                         .append("\n");
             }
         }
         List<MaterialAttachment> materialAttachmentList = attachment.getMaterialAttachmentList();
-        if ( materialAttachmentList != null && !materialAttachmentList.isEmpty()) {
+        if (materialAttachmentList != null && !materialAttachmentList.isEmpty()) {
             stockDescription.append("用户选取的预设材料如下：\n");
-            for ( MaterialAttachment materialAttachment : materialAttachmentList) {
-                stockDescription.append(stockDescriptionUtil.getMaterialStockDescription(
-                        materialAttachment.getCategoryId(), materialAttachment.getSelectedMaterialIdList()))
+            for (MaterialAttachment materialAttachment : materialAttachmentList) {
+                stockDescription
+                        .append(stockDescriptionUtil.getMaterialStockDescription(
+                                materialAttachment.getCategoryId(), materialAttachment.getSelectedMaterialIdList()))
                         .append("\n");
             }
         }
         return stockDescription.toString();
     }
-
 }

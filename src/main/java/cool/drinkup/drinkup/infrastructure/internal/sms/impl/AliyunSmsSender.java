@@ -1,23 +1,20 @@
 package cool.drinkup.drinkup.infrastructure.internal.sms.impl;
 
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.util.StringUtils;
-
 import com.aliyun.dysmsapi20170525.Client;
 import com.aliyun.dysmsapi20170525.models.SendSmsRequest;
 import com.aliyun.dysmsapi20170525.models.SendSmsResponse;
 import com.aliyun.teaopenapi.models.Config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import cool.drinkup.drinkup.infrastructure.internal.sms.config.AliyunSmsProperties;
+import cool.drinkup.drinkup.infrastructure.spi.SmsSender;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import cool.drinkup.drinkup.infrastructure.internal.sms.config.AliyunSmsProperties;
-import cool.drinkup.drinkup.infrastructure.spi.SmsSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -34,9 +31,9 @@ public class AliyunSmsSender implements SmsSender {
     private synchronized Client getClient() throws Exception {
         if (client == null) {
             Config config = new Config()
-                .setAccessKeyId(properties.getAccessKeyId())
-                .setAccessKeySecret(properties.getAccessKeySecret())
-                .setEndpoint("dysmsapi.aliyuncs.com");
+                    .setAccessKeyId(properties.getAccessKeyId())
+                    .setAccessKeySecret(properties.getAccessKeySecret())
+                    .setEndpoint("dysmsapi.aliyuncs.com");
             client = new Client(config);
         }
         return client;
@@ -67,9 +64,9 @@ public class AliyunSmsSender implements SmsSender {
             try {
                 // 构建请求参数
                 SendSmsRequest sendSmsRequest = new SendSmsRequest()
-                    .setPhoneNumbers(phoneNumber)
-                    .setSignName(properties.getSignName())
-                    .setTemplateCode(properties.getTemplateCode());
+                        .setPhoneNumbers(phoneNumber)
+                        .setSignName(properties.getSignName())
+                        .setTemplateCode(properties.getTemplateCode());
 
                 // 支持灵活的模板参数
                 Map<String, String> templateParams;
@@ -91,17 +88,22 @@ public class AliyunSmsSender implements SmsSender {
 
                 if ("OK".equals(code)) {
                     // 发送成功，记录幂等性信息到Redis，设置过期时间
-                    redisTemplate.opsForValue().set(idempotencyKey, String.valueOf(System.currentTimeMillis()), 
-                            properties.getVerificationCodeExpireMinutes(), TimeUnit.MINUTES);
+                    redisTemplate
+                            .opsForValue()
+                            .set(
+                                    idempotencyKey,
+                                    String.valueOf(System.currentTimeMillis()),
+                                    properties.getVerificationCodeExpireMinutes(),
+                                    TimeUnit.MINUTES);
                     log.info("SMS sent successfully to {}, BizId: {}", phoneNumber, bizId);
                     return;
                 } else {
                     // 处理特定错误码
-                    handleErrorCode(code, Map.of(
-                        "Code", code,
-                        "Message", response.getBody().getMessage()
-                    ));
-                    lastException = new RuntimeException("Failed to send SMS: " + response.getBody().getMessage());
+                    handleErrorCode(
+                            code,
+                            Map.of("Code", code, "Message", response.getBody().getMessage()));
+                    lastException = new RuntimeException(
+                            "Failed to send SMS: " + response.getBody().getMessage());
                 }
             } catch (Exception e) {
                 lastException = e;
@@ -119,7 +121,8 @@ public class AliyunSmsSender implements SmsSender {
         }
 
         log.error("Failed to send SMS to {} after {} attempts", phoneNumber, properties.getMaxRetries(), lastException);
-        throw new RuntimeException("Failed to send SMS after " + properties.getMaxRetries() + " attempts", lastException);
+        throw new RuntimeException(
+                "Failed to send SMS after " + properties.getMaxRetries() + " attempts", lastException);
     }
 
     private void validatePhoneNumber(String phoneNumber) {
@@ -137,8 +140,9 @@ public class AliyunSmsSender implements SmsSender {
             number = number.trim();
             // 国内手机号格式：+86/+/0086/86/空 + 1开头11位数字
             // 国际/港澳台号码格式：+ + 国际区号 + 号码
-            if (!number.matches("^(\\+86|\\+|0086|86)?1[3-9]\\d{9}$") && // 国内号码
-                !number.matches("^\\+[1-9]\\d{1,14}$")) { // 国际号码
+            if (!number.matches("^(\\+86|\\+|0086|86)?1[3-9]\\d{9}$")
+                    && // 国内号码
+                    !number.matches("^\\+[1-9]\\d{1,14}$")) { // 国际号码
                 throw new IllegalArgumentException("Invalid phone number format: " + number);
             }
         }
@@ -184,22 +188,22 @@ public class AliyunSmsSender implements SmsSender {
             log.info("Skipping verification for phone number: {}", phoneNumber);
             return true;
         }
-        
+
         // 如果是批量号码，只验证第一个号码
         String firstPhoneNumber = phoneNumber.split(",")[0].trim();
-        
+
         // 从Redis中获取验证码
         String key = SMS_IDEMPOTENCY_KEY_PREFIX + firstPhoneNumber + ":" + code;
         String storedCode = redisTemplate.opsForValue().get(key);
-        
+
         if (storedCode == null) {
             log.warn("No verification code found for phone number: {}", firstPhoneNumber);
             return false;
         }
-        
+
         // 验证码
         boolean isValid = StringUtils.hasText(storedCode);
-        
+
         if (isValid) {
             // 验证成功后删除验证码，防止重复使用
             redisTemplate.delete(key);
@@ -207,7 +211,7 @@ public class AliyunSmsSender implements SmsSender {
         } else {
             log.warn("Invalid verification code for phone number: {}", firstPhoneNumber);
         }
-        
+
         return isValid;
     }
 
@@ -221,7 +225,7 @@ public class AliyunSmsSender implements SmsSender {
         if (phoneNumbers.size() != codes.size()) {
             throw new IllegalArgumentException("Phone numbers and codes lists must have the same size");
         }
-        
+
         return phoneNumbers.stream()
                 .map(phoneNumber -> {
                     int index = phoneNumbers.indexOf(phoneNumber);
@@ -230,4 +234,3 @@ public class AliyunSmsSender implements SmsSender {
                 .toList();
     }
 }
-

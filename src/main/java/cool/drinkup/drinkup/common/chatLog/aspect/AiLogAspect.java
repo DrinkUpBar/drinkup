@@ -1,5 +1,22 @@
 package cool.drinkup.drinkup.common.chatLog.aspect;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import cool.drinkup.drinkup.common.chatLog.annotation.AiLog;
+import cool.drinkup.drinkup.common.chatLog.model.AiChatLog;
+import cool.drinkup.drinkup.common.chatLog.repository.AiChatLogRepository;
+import cool.drinkup.drinkup.user.spi.AuthenticatedUserDTO;
+import cool.drinkup.drinkup.user.spi.AuthenticationServiceFacade;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
+import java.lang.reflect.Method;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -15,26 +32,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
-import java.lang.reflect.Method;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
-import cool.drinkup.drinkup.common.chatLog.annotation.AiLog;
-import cool.drinkup.drinkup.common.chatLog.model.AiChatLog;
-import cool.drinkup.drinkup.common.chatLog.repository.AiChatLogRepository;
-import cool.drinkup.drinkup.user.spi.AuthenticatedUserDTO;
-import cool.drinkup.drinkup.user.spi.AuthenticationServiceFacade;
-import io.micrometer.tracing.Span;
-import io.micrometer.tracing.Tracer;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Aspect
@@ -70,18 +67,18 @@ public class AiLogAspect {
 
         // 校验方法返回类型
         Class<?> returnType = method.getReturnType();
-        if ( !ChatResponse.class.isAssignableFrom(returnType)) {
+        if (!ChatResponse.class.isAssignableFrom(returnType)) {
             log.error("AiLog 注解只能用于返回类型为 String 或 ChatResponse 的方法，当前方法: {}", method.getName());
             return joinPoint.proceed();
         }
         Prompt prompt = extractPrompt(joinPoint);
-        if ( prompt == null) {
+        if (prompt == null) {
             log.error("AiLog 注解只能用于返回类型为 String 或 ChatResponse 的方法，当前方法: {}", method.getName());
             return joinPoint.proceed();
         }
         Object[] args = joinPoint.getArgs();
-        EvaluationContext context = new MethodBasedEvaluationContext(null, method, args,
-                new DefaultParameterNameDiscoverer());
+        EvaluationContext context =
+                new MethodBasedEvaluationContext(null, method, args, new DefaultParameterNameDiscoverer());
 
         String conversationId = parseSpEL(aiLog.conversationId(), context);
         String errorMessage = null;
@@ -102,8 +99,10 @@ public class AiLogAspect {
             // 安全获取 traceId
             Span currentSpan = tracer.currentSpan();
             String traceId = currentSpan != null ? currentSpan.context().traceId() : null;
-            Long userId = authenticationServiceFacade.getCurrentAuthenticatedUser()
-                    .map(AuthenticatedUserDTO::userId).orElse(null);
+            Long userId = authenticationServiceFacade
+                    .getCurrentAuthenticatedUser()
+                    .map(AuthenticatedUserDTO::userId)
+                    .orElse(null);
             threadPoolTaskExecutor.execute(() -> {
                 try {
                     Instant end = Instant.now();
@@ -124,14 +123,14 @@ public class AiLogAspect {
                             .status(finalStatus)
                             .errorMessage(finalErrorMessage)
                             .promptTokens(chatResponse.getMetadata().getUsage().getPromptTokens())
-                            .completionTokens(chatResponse.getMetadata().getUsage().getCompletionTokens())
+                            .completionTokens(
+                                    chatResponse.getMetadata().getUsage().getCompletionTokens())
                             .totalTokens(chatResponse.getMetadata().getUsage().getTotalTokens())
                             .build());
                 } catch (Exception e) {
                     log.error("Failed to save AI chat log", e);
                 }
             });
-
         }
 
         return result;
@@ -147,8 +146,7 @@ public class AiLogAspect {
     }
 
     private String parseSpEL(String spel, EvaluationContext context) {
-        if ( spel == null || spel.isBlank())
-            return null;
+        if (spel == null || spel.isBlank()) return null;
         try {
             Expression exp = parser.parseExpression(spel);
             Object value = exp.getValue(context);
@@ -161,8 +159,8 @@ public class AiLogAspect {
 
     private Prompt extractPrompt(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
-        for ( Object arg : args) {
-            if ( arg instanceof Prompt) {
+        for (Object arg : args) {
+            if (arg instanceof Prompt) {
                 return (Prompt) arg;
             }
         }

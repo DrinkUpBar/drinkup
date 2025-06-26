@@ -1,8 +1,6 @@
 package cool.drinkup.drinkup.workflow.internal.service.chat.dto;
 
-
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

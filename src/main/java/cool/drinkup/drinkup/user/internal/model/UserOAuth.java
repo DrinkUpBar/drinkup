@@ -1,11 +1,5 @@
 package cool.drinkup.drinkup.user.internal.model;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,10 +12,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 /**
  * 用户OAuth绑定信息实体
@@ -30,9 +28,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user_oauth", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "oauth_id", "oauth_type" })
-})
+@Table(
+        name = "user_oauth",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"oauth_id", "oauth_type"})})
 @Getter
 @Setter
 public class UserOAuth {

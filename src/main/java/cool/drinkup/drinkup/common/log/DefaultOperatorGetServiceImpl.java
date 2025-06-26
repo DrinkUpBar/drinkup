@@ -1,18 +1,16 @@
 package cool.drinkup.drinkup.common.log;
 
-import org.springframework.stereotype.Service;
 import com.mzt.logapi.beans.Operator;
 import com.mzt.logapi.service.IOperatorGetService;
-
-import java.util.Optional;
-
 import cool.drinkup.drinkup.user.spi.AuthenticatedUserDTO;
 import cool.drinkup.drinkup.user.spi.AuthenticationServiceFacade;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class DefaultOperatorGetServiceImpl  implements IOperatorGetService{
+public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 
     private final AuthenticationServiceFacade authenticationServiceFacade;
 

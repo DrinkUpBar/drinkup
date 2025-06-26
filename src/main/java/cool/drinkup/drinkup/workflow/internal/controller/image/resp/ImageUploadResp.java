@@ -6,4 +6,4 @@ import lombok.Data;
 public class ImageUploadResp {
     private String imageId;
     private String imageUrl;
-} 
+}

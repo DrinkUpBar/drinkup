@@ -5,11 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.util.Arrays;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Apple OAuth 配置测试
@@ -26,10 +25,8 @@ class AppleOAuthConfigTest {
     @Test
     void testGetAllClientIds_WithClientIdsList() {
         // Given
-        List<String> clientIds = Arrays.asList(
-                "com.drinkupbar.kaihe",
-                "com.drinkupbar.kaihe.dev",
-                "com.drinkupbar.kaihe.web");
+        List<String> clientIds =
+                Arrays.asList("com.drinkupbar.kaihe", "com.drinkupbar.kaihe.dev", "com.drinkupbar.kaihe.web");
         config.setClientIds(clientIds);
         config.setClientId("com.drinkupbar.single"); // 这个应该被忽略
 
@@ -100,9 +97,7 @@ class AppleOAuthConfigTest {
     @Test
     void testIsValidClientId_ValidId() {
         // Given
-        List<String> clientIds = Arrays.asList(
-                "com.drinkupbar.kaihe",
-                "com.drinkupbar.kaihe.dev");
+        List<String> clientIds = Arrays.asList("com.drinkupbar.kaihe", "com.drinkupbar.kaihe.dev");
         config.setClientIds(clientIds);
 
         // When & Then
@@ -113,9 +108,7 @@ class AppleOAuthConfigTest {
     @Test
     void testIsValidClientId_InvalidId() {
         // Given
-        List<String> clientIds = Arrays.asList(
-                "com.drinkupbar.kaihe",
-                "com.drinkupbar.kaihe.dev");
+        List<String> clientIds = Arrays.asList("com.drinkupbar.kaihe", "com.drinkupbar.kaihe.dev");
         config.setClientIds(clientIds);
 
         // When & Then
@@ -138,10 +131,8 @@ class AppleOAuthConfigTest {
     @Test
     void testGetPrimaryClientId_WithClientIdsList() {
         // Given
-        List<String> clientIds = Arrays.asList(
-                "com.drinkupbar.kaihe",
-                "com.drinkupbar.kaihe.dev",
-                "com.drinkupbar.kaihe.web");
+        List<String> clientIds =
+                Arrays.asList("com.drinkupbar.kaihe", "com.drinkupbar.kaihe.dev", "com.drinkupbar.kaihe.web");
         config.setClientIds(clientIds);
 
         // When

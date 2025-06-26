@@ -41,7 +41,7 @@ public class AppleTokenService {
     /**
      * 验证 Apple ID Token
      * 实现完整的JWT验证，包括签名验证、时间验证等
-     * 
+     *
      * @param idToken Apple ID Token
      * @return 包含用户信息的Map，如果验证失败则返回null
      */
@@ -85,7 +85,7 @@ public class AppleTokenService {
 
     /**
      * 从JWT Token中提取密钥ID
-     * 
+     *
      * @param idToken JWT Token
      * @return 密钥ID
      */
@@ -118,7 +118,7 @@ public class AppleTokenService {
 
     /**
      * 解析和验证JWT
-     * 
+     *
      * @param idToken   JWT Token
      * @param publicKey 公钥
      * @return JWT声明，验证失败返回null
@@ -154,8 +154,11 @@ public class AppleTokenService {
                     log.info("JWT验证成功，匹配的客户端ID: {}", clientId);
                     break; // 找到匹配的客户端ID，退出循环
 
-                } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException | UnsupportedJwtException
-                        | IllegalArgumentException | IncorrectClaimException e) {
+                } catch (io.jsonwebtoken.security.SecurityException
+                        | MalformedJwtException
+                        | UnsupportedJwtException
+                        | IllegalArgumentException
+                        | IncorrectClaimException e) {
                     // 这些异常表示当前客户端ID不匹配，继续尝试下一个
                     log.debug("客户端ID {} 验证失败: {}", clientId, e.getMessage());
                     continue;
@@ -205,7 +208,7 @@ public class AppleTokenService {
 
     /**
      * 从JWT声明中提取用户信息
-     * 
+     *
      * @param claims JWT声明
      * @return 用户信息Map
      */
@@ -218,7 +221,7 @@ public class AppleTokenService {
             Long authTime = claims.get("auth_time", Long.class);
 
             // 构建用户信息Map
-                    Map<String, Object> userInfo = Map.of(
+            Map<String, Object> userInfo = Map.of(
                     "sub", subject != null ? subject : "",
                     "email", email != null ? email : "",
                     "email_verified", emailVerified != null ? emailVerified : false,
@@ -240,7 +243,7 @@ public class AppleTokenService {
 
     /**
      * 验证Token的基本格式
-     * 
+     *
      * @param idToken JWT Token
      * @return 是否格式正确
      */

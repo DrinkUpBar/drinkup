@@ -1,11 +1,9 @@
 package cool.drinkup.drinkup.common.log.repository.impl;
 
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Repository;
 
 /**
  * Elasticsearch日志记录存储实现
@@ -15,23 +13,30 @@ import lombok.extern.slf4j.Slf4j;
 @Repository("elasticsearchLogRecordRepository")
 @RequiredArgsConstructor
 public class ElasticsearchLogRecordRepository implements LogRecordRepository {
-    
+
     private final LogRecordElasticsearchRepository elasticsearchRepository;
-    
+
     @Override
     public LogRecord save(LogRecord logRecord) {
         try {
             LogRecord saved = elasticsearchRepository.save(logRecord);
-            log.info("成功保存日志记录到Elasticsearch: id={}, bizNo={}, type={}", 
-                    saved.getId(), saved.getBizNo(), saved.getType());
+            log.info(
+                    "成功保存日志记录到Elasticsearch: id={}, bizNo={}, type={}",
+                    saved.getId(),
+                    saved.getBizNo(),
+                    saved.getType());
             return saved;
         } catch (Exception e) {
-            log.error("保存日志记录到Elasticsearch失败: id={}, bizNo={}, type={}", 
-                    logRecord.getId(), logRecord.getBizNo(), logRecord.getType(), e);
+            log.error(
+                    "保存日志记录到Elasticsearch失败: id={}, bizNo={}, type={}",
+                    logRecord.getId(),
+                    logRecord.getBizNo(),
+                    logRecord.getType(),
+                    e);
             throw new RuntimeException("保存日志记录到Elasticsearch失败", e);
         }
     }
-    
+
     @Override
     public List<LogRecord> findByBizNoAndType(String bizNo, String type) {
         try {
@@ -43,11 +48,12 @@ public class ElasticsearchLogRecordRepository implements LogRecordRepository {
             throw new RuntimeException("查询日志记录失败", e);
         }
     }
-    
+
     @Override
     public List<LogRecord> findByBizNoAndTypeAndSubType(String bizNo, String type, String subType) {
         try {
-            List<LogRecord> records = elasticsearchRepository.findByBizNoAndTypeAndSubTypeOrderByCreateTimeDesc(bizNo, type, subType);
+            List<LogRecord> records =
+                    elasticsearchRepository.findByBizNoAndTypeAndSubTypeOrderByCreateTimeDesc(bizNo, type, subType);
             log.info("从Elasticsearch查询到{}条日志记录: bizNo={}, type={}, subType={}", records.size(), bizNo, type, subType);
             return records;
         } catch (Exception e) {
@@ -55,7 +61,7 @@ public class ElasticsearchLogRecordRepository implements LogRecordRepository {
             throw new RuntimeException("查询日志记录失败", e);
         }
     }
-    
+
     @Override
     public List<LogRecord> findByTenant(String tenant) {
         try {
@@ -67,7 +73,7 @@ public class ElasticsearchLogRecordRepository implements LogRecordRepository {
             throw new RuntimeException("查询日志记录失败", e);
         }
     }
-    
+
     @Override
     public List<LogRecord> findByOperator(String operator) {
         try {
@@ -79,4 +85,4 @@ public class ElasticsearchLogRecordRepository implements LogRecordRepository {
             throw new RuntimeException("查询日志记录失败", e);
         }
     }
-} 
+}

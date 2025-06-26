@@ -1,5 +1,14 @@
 package cool.drinkup.drinkup.workflow.internal.service.translate.impl;
 
+import cool.drinkup.drinkup.workflow.internal.config.AITranslateProperties;
+import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
+import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
+import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
+import cool.drinkup.drinkup.workflow.internal.service.translate.TranslateService;
+import jakarta.annotation.PostConstruct;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
@@ -7,22 +16,11 @@ import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
-import cool.drinkup.drinkup.workflow.internal.config.AITranslateProperties;
-import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
-import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
-import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
-import cool.drinkup.drinkup.workflow.internal.service.translate.TranslateService;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AITranslateService implements TranslateService {
-    
+
     private final ChatModel translateChatModel;
 
     private final AITranslateProperties aiTranslateProperties;
@@ -46,14 +44,15 @@ public class AITranslateService implements TranslateService {
             log.warn("翻译提示词模板未找到，使用默认翻译");
             return text;
         }
-        
+
         // 构建系统提示词，替换占位符
         String systemPrompt = promptTemplate;
-        
+
         // 构建 Prompt
         var systemMessage = new SystemMessage(systemPrompt);
         var userMessage = new UserMessage(text);
-        var prompt = new Prompt(List.of(systemMessage, userMessage),
+        var prompt = new Prompt(
+                List.of(systemMessage, userMessage),
                 ChatOptions.builder().model(aiTranslateProperties.getModel()).build());
 
         try {

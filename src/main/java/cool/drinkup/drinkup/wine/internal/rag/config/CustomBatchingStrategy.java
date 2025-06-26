@@ -1,13 +1,11 @@
 package cool.drinkup.drinkup.wine.internal.rag.config;
 
-import org.springframework.ai.document.Document;
-import org.springframework.ai.embedding.BatchingStrategy;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.embedding.BatchingStrategy;
 
 public class CustomBatchingStrategy implements BatchingStrategy {
     private final ObjectMapper objectMapper = new ObjectMapper();

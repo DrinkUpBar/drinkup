@@ -1,32 +1,36 @@
 package cool.drinkup.drinkup.wine.internal.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
+import cool.drinkup.drinkup.shared.spi.CommonMapper;
+import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowUserWineVo;
+import cool.drinkup.drinkup.wine.internal.model.UserWine;
+import java.util.Collections;
+import java.util.List;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.Collections;
-import java.util.List;
-
-import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
-import cool.drinkup.drinkup.shared.spi.CommonMapper;
-import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowUserWineVo;
-import cool.drinkup.drinkup.wine.internal.model.UserWine;
 
 @Mapper(componentModel = "spring", uses = CommonMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public abstract class UserWineMapper {
 
     protected static final Logger log = LoggerFactory.getLogger(UserWineMapper.class);
     protected ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    
+
     @Mapping(target = "id", ignore = true)
-    @Mapping(source = "chatBotResponse.ingredients", target = "ingredients", qualifiedByName = "IngredientListToJsonString")
-    @Mapping(source = "chatBotResponse.tagBaseSpirit", target = "tagBaseSpirit", qualifiedByName = "JsonStringListToString")
+    @Mapping(
+            source = "chatBotResponse.ingredients",
+            target = "ingredients",
+            qualifiedByName = "IngredientListToJsonString")
+    @Mapping(
+            source = "chatBotResponse.tagBaseSpirit",
+            target = "tagBaseSpirit",
+            qualifiedByName = "JsonStringListToString")
     @Mapping(source = "chatBotResponse.tagFlavor", target = "tagFlavor", qualifiedByName = "JsonStringListToString")
     @Mapping(source = "chatBotResponse.tagsOthers", target = "tagsOthers", qualifiedByName = "JsonStringListToString")
     @Mapping(source = "userId", target = "userId")
@@ -107,4 +111,4 @@ public abstract class UserWineMapper {
             return Collections.emptyList();
         }
     }
-} 
+}

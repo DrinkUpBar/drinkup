@@ -1,8 +1,7 @@
 package cool.drinkup.drinkup.favorite.internal.dto;
 
-import java.time.ZonedDateTime;
-
 import cool.drinkup.drinkup.favorite.spi.FavoriteType;
+import java.time.ZonedDateTime;
 import lombok.Data;
 
 @Data
@@ -13,4 +12,4 @@ public class UserFavoriteDTO {
     private ZonedDateTime favoriteTime;
     private String note;
     private Object objectDetail;
-} 
+}

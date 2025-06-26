@@ -16,11 +16,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Role {
-    
+
     @Id
     @Column(name = "name")
     private String name;
-    
+
     @Column(name = "description")
     private String description;
-} 
+}

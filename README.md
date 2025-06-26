@@ -16,7 +16,7 @@
 ## 技术栈
 
 - **Framework**: Spring Boot 3.4
-- **Database**: MariaDB 
+- **Database**: MariaDB
 - **Cache**: Redis
 - **ORM**: JPA, MyBatis
 - **AI Integration**: Spring AI (OpenAI, Anthropic, ZhipuAI)
@@ -46,7 +46,7 @@ cp .env.example .env
 
 编辑.env文件，填写必要的配置信息：
 
-```
+``` txt
 ALIYUN_SMS_ACCESS_KEY_ID=your_access_key_id
 ALIYUN_SMS_ACCESS_KEY_SECRET=your_access_key_secret
 ALIYUN_SMS_SIGN_NAME=your_sign_name
@@ -62,6 +62,7 @@ docker compose up -d
 ```
 
 这将启动以下服务：
+
 - MariaDB (数据库)
 - Redis (缓存和会话存储)
 - MinIO (对象存储)
@@ -92,7 +93,7 @@ docker compose up -d
 
 启动应用后，可以通过以下地址访问API文档：
 
-```
+``` txt
 http://localhost:8080/swagger-ui.html
 ```
 
@@ -103,7 +104,7 @@ http://localhost:8080/swagger-ui.html
 
 ## 项目结构
 
-```
+``` txt
 drinkup/
 ├── src/                  # 源代码
 │   ├── main/             # 主要代码

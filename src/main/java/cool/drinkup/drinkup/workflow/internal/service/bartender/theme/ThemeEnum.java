@@ -1,8 +1,7 @@
 package cool.drinkup.drinkup.workflow.internal.service.bartender.theme;
 
-import java.security.SecureRandom;
-
 import jakarta.annotation.Nullable;
+import java.security.SecureRandom;
 
 public enum ThemeEnum {
     PHILOSOPHY,
@@ -12,6 +11,7 @@ public enum ThemeEnum {
     ;
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     public static @Nullable ThemeEnum fromValue(String value) {
         if (value == null || value.isEmpty()) {
             // 随机一个已有的theme

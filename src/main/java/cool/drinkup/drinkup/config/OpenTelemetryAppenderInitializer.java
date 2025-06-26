@@ -1,10 +1,9 @@
 package cool.drinkup.drinkup.config;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Component;
-
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
 @Component
 class OpenTelemetryAppenderInitializer implements InitializingBean {
@@ -19,5 +18,4 @@ class OpenTelemetryAppenderInitializer implements InitializingBean {
     public void afterPropertiesSet() {
         OpenTelemetryAppender.install(this.openTelemetry);
     }
-
 }

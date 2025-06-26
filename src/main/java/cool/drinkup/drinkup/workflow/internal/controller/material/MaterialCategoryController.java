@@ -1,17 +1,5 @@
 package cool.drinkup.drinkup.workflow.internal.controller.material;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import cool.drinkup.drinkup.shared.spi.CommonResp;
 import cool.drinkup.drinkup.workflow.internal.controller.material.resp.MaterialCategoryVo;
 import cool.drinkup.drinkup.workflow.internal.mapper.MaterialCategoryMapper;
@@ -20,7 +8,17 @@ import cool.drinkup.drinkup.workflow.internal.service.material.MaterialCategoryS
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "材料分类管理", description = "材料分类相关接口")
 @RestController
@@ -35,9 +33,8 @@ public class MaterialCategoryController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CommonResp<List<MaterialCategoryVo>>> getAllCategories(
-            @Parameter(description = "是否返回树形结构", example = "true") 
-            @RequestParam(defaultValue = "false") Boolean tree) {
-        
+            @Parameter(description = "是否返回树形结构", example = "true") @RequestParam(defaultValue = "false") Boolean tree) {
+
         List<MaterialCategory> categories;
         if (tree) {
             categories = materialCategoryService.getAllCategories();
@@ -98,4 +95,4 @@ public class MaterialCategoryController {
                 .filter(category -> category.getParentId() == null)
                 .collect(Collectors.toList());
     }
-} 
+}

@@ -1,5 +1,18 @@
 package cool.drinkup.drinkup.workflow.internal.service.image;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarStockCreateReq;
+import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarStockCreateReq.InnerBarStockCreateReq;
+import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
+import cool.drinkup.drinkup.workflow.internal.model.BarStock;
+import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
+import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
+import cool.drinkup.drinkup.workflow.internal.util.ContentTypeUtil;
+import jakarta.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -13,22 +26,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeType;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarStockCreateReq;
-import cool.drinkup.drinkup.workflow.internal.controller.bar.req.BarStockCreateReq.InnerBarStockCreateReq;
-import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
-import cool.drinkup.drinkup.workflow.internal.model.BarStock;
-import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
-import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
-import cool.drinkup.drinkup.workflow.internal.util.ContentTypeUtil;
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -37,6 +34,7 @@ import reactor.core.publisher.Mono;
 public class ImageRecognitionService {
     @Qualifier("openAiChatModel")
     private final ChatModel chatModel;
+
     private final ObjectMapper objectMapper;
     private final ImageService imageService;
     private final ContentTypeUtil contentTypeUtil;
@@ -46,8 +44,12 @@ public class ImageRecognitionService {
     @Value("${drinkup.image.recognition.model:google/gemini-2.0-flash-001}")
     private String model;
 
-    public ImageRecognitionService(@Qualifier("openAiChatModel") ChatModel chatModel,
-            ObjectMapper objectMapper, ImageService imageService, ContentTypeUtil contentTypeUtil, PromptRepository promptRepository) {
+    public ImageRecognitionService(
+            @Qualifier("openAiChatModel") ChatModel chatModel,
+            ObjectMapper objectMapper,
+            ImageService imageService,
+            ContentTypeUtil contentTypeUtil,
+            PromptRepository promptRepository) {
         this.chatModel = chatModel;
         this.objectMapper = objectMapper;
         this.imageService = imageService;
@@ -59,28 +61,28 @@ public class ImageRecognitionService {
     public void init() {
         PromptContent prompt = promptRepository.findByType(PromptTypeEnum.IMAGE_RECOGNITION.name());
         if (prompt == null) {
-            return; 
+            return;
         }
         this.promptTemplate = prompt.getSystemPrompt();
     }
 
-    public record StreamBarStockResult(boolean isDone, String text, List<BarStock> barStocks) {
-    }
+    public record StreamBarStockResult(boolean isDone, String text, List<BarStock> barStocks) {}
 
     public Flux<StreamBarStockResult> recognizeStockFromImageStream(String imageId) {
         try {
             if (promptTemplate == null || promptTemplate.trim().isEmpty()) {
                 log.error("Prompt template is not initialized");
-                return Flux.just(new StreamBarStockResult(true, "Error: Prompt template not found", 
-                        new ArrayList<>()));
+                return Flux.just(new StreamBarStockResult(true, "Error: Prompt template not found", new ArrayList<>()));
             }
-            
+
             List<Message> messages = new ArrayList<>();
             messages.add(new SystemMessage(promptTemplate));
             Resource image = imageService.loadImage(imageId);
             String mimeType = contentTypeUtil.detectMimeType(image).toString();
-            UserMessage userMessage = UserMessage.builder().text("这是原料图片，请开始识别")
-                    .media(List.of(new Media(MimeType.valueOf(mimeType), image))).build();
+            UserMessage userMessage = UserMessage.builder()
+                    .text("这是原料图片，请开始识别")
+                    .media(List.of(new Media(MimeType.valueOf(mimeType), image)))
+                    .build();
             messages.add(userMessage);
             Prompt prompt = new Prompt(messages);
 
@@ -91,7 +93,8 @@ public class ImageRecognitionService {
             Flux<StreamBarStockResult> streamingResults = sharedResponseFlux
                     .scan(new StringBuilder(), (acc, chatResponse) -> {
                         // 提取当前chunk的文本并累积
-                        if (chatResponse.getResult() != null && chatResponse.getResult().getOutput() != null) {
+                        if (chatResponse.getResult() != null
+                                && chatResponse.getResult().getOutput() != null) {
                             String text = chatResponse.getResult().getOutput().getText();
                             if (text != null && !text.isEmpty()) {
                                 acc.append(text);
@@ -108,7 +111,8 @@ public class ImageRecognitionService {
             // 获取最终结果
             Mono<StreamBarStockResult> finalResult = sharedResponseFlux
                     .reduce(new StringBuilder(), (acc, chatResponse) -> {
-                        if (chatResponse.getResult() != null && chatResponse.getResult().getOutput() != null) {
+                        if (chatResponse.getResult() != null
+                                && chatResponse.getResult().getOutput() != null) {
                             String text = chatResponse.getResult().getOutput().getText();
                             if (text != null) {
                                 acc.append(text);
@@ -128,17 +132,21 @@ public class ImageRecognitionService {
                         if (!result.isDone()) {
                             log.debug("Streaming text length: {}", result.text().length());
                         } else {
-                            log.info("Stream completed with {} recognized stocks", 
-                                result.barStocks() != null ? result.barStocks().size() : 0);
+                            log.info(
+                                    "Stream completed with {} recognized stocks",
+                                    result.barStocks() != null
+                                            ? result.barStocks().size()
+                                            : 0);
                         }
                     })
                     .doOnError(e -> log.error("Error processing image for stock recognition stream", e))
-                    .onErrorReturn(new StreamBarStockResult(true, "Error occurred during processing", new ArrayList<>()));
-                    
+                    .onErrorReturn(
+                            new StreamBarStockResult(true, "Error occurred during processing", new ArrayList<>()));
+
         } catch (Exception e) {
             log.error("Error setting up image recognition stream", e);
-            return Flux.just(new StreamBarStockResult(true, "Error setting up stream: " + e.getMessage(),
-                    new ArrayList<>()));
+            return Flux.just(
+                    new StreamBarStockResult(true, "Error setting up stream: " + e.getMessage(), new ArrayList<>()));
         }
     }
 
@@ -149,7 +157,10 @@ public class ImageRecognitionService {
             messages.add(new SystemMessage(promptTemplate));
             Resource image = imageService.loadImage(imageId);
             String mimeType = contentTypeUtil.detectMimeType(image).toString();
-            UserMessage userMessage = UserMessage.builder().text("这是原料图片，请开始识别").media(List.of(new Media(MimeType.valueOf(mimeType), image))).build();
+            UserMessage userMessage = UserMessage.builder()
+                    .text("这是原料图片，请开始识别")
+                    .media(List.of(new Media(MimeType.valueOf(mimeType), image)))
+                    .build();
             messages.add(userMessage);
             Prompt prompt = new Prompt(messages);
             ChatResponse call = chatModel.call(prompt);
@@ -171,8 +182,8 @@ public class ImageRecognitionService {
             BarStockCreateReq barStockCreateReq = objectMapper.readValue(jsonContent, BarStockCreateReq.class);
 
             // Parse the JSON array into a list of InnerBarStockCreateReq objects
-            List<InnerBarStockCreateReq> stockItems = barStockCreateReq.getBarStocks() == null ? new ArrayList<>()
-                    : barStockCreateReq.getBarStocks();
+            List<InnerBarStockCreateReq> stockItems =
+                    barStockCreateReq.getBarStocks() == null ? new ArrayList<>() : barStockCreateReq.getBarStocks();
 
             // Convert to BarStock objects
             List<BarStock> barStocks = new ArrayList<>();
@@ -197,14 +208,14 @@ public class ImageRecognitionService {
         if (response == null || response.trim().isEmpty()) {
             return "{\"bar_stocks\":[]}";
         }
-        
+
         String trimmedResponse = response.trim();
-        
+
         // If response contains JSON object directly
         if (trimmedResponse.startsWith("{") && trimmedResponse.endsWith("}")) {
             return trimmedResponse;
         }
-        
+
         // If response contains JSON array directly
         if (trimmedResponse.startsWith("[") && trimmedResponse.endsWith("]")) {
             return "{\"bar_stocks\":" + trimmedResponse + "}";

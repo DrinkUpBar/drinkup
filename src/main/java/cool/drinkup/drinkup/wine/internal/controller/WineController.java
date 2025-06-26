@@ -1,19 +1,6 @@
 package cool.drinkup.drinkup.wine.internal.controller;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.mzt.logapi.starter.annotation.LogRecord;
-
 import cool.drinkup.drinkup.common.log.event.WineEvent;
 import cool.drinkup.drinkup.shared.spi.CommonResp;
 import cool.drinkup.drinkup.wine.internal.controller.resp.RandomWineResp;
@@ -33,6 +20,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/wines")
@@ -47,14 +45,14 @@ public class WineController {
     private final DataLoaderService dataLoaderService;
     private final MixedWineService mixedWineService;
 
-
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询酒", description = "通过酒的唯一标识符查询详细信息")
     @Parameter(name = "id", description = "酒ID", required = true)
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "成功获取酒信息"),
-        @ApiResponse(responseCode = "404", description = "未找到指定ID的酒")
-    })
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "成功获取酒信息"),
+                @ApiResponse(responseCode = "404", description = "未找到指定ID的酒")
+            })
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CommonResp<WorkflowWineVo>> getWineById(@PathVariable Long id) {
         Wine wineById = wineService.getWineById(id);
@@ -70,10 +68,11 @@ public class WineController {
     @Parameter(name = "tag", description = "标签名称，可选参数", required = false)
     @Parameter(name = "page", description = "页码，从0开始", required = false)
     @Parameter(name = "size", description = "每页大小", required = false)
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "成功获取酒列表"),
-        @ApiResponse(responseCode = "400", description = "请求参数错误")
-    })
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "成功获取酒列表"),
+                @ApiResponse(responseCode = "400", description = "请求参数错误")
+            })
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CommonResp<Page<WorkflowWineVo>>> getWinesByTag(
             @RequestParam(required = false) String tag,
@@ -89,18 +88,15 @@ public class WineController {
     @GetMapping("/user-wine")
     @Operation(summary = "查询用户酒列表", description = "查询当前用户的所有酒")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<CommonResp<Page<WorkflowUserWineVo>>> getUserWine(@RequestParam(defaultValue = "0") int page,
-    @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<CommonResp<Page<WorkflowUserWineVo>>> getUserWine(
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
         Page<UserWine> userWine = userWineService.getUserWine(pageRequest);
         Page<WorkflowUserWineVo> userWineVos = userWine.map(userWineMapper::toWorkflowUserWineVo);
         return ResponseEntity.ok(CommonResp.success(userWineVos));
     }
 
-    @Operation(
-        summary = "加载酒类数据到向量数据库",
-        description = "将酒类相关数据加载到系统中"
-    )
+    @Operation(summary = "加载酒类数据到向量数据库", description = "将酒类相关数据加载到系统中")
     @ApiResponse(responseCode = "200", description = "Successfully loaded wine data")
     @PostMapping("/vector-store/load-wine")
     @PreAuthorize("hasRole('ADMIN')")
@@ -117,34 +113,30 @@ public class WineController {
         dataLoaderService.addData(wineId);
         return ResponseEntity.ok().build();
     }
-    
+
     @LogRecord(
-        type = WineEvent.WINE,
-        subType = WineEvent.BehaviorEvent.WINE_RANDOM,
-        bizNo = "{{#type}}-{{#count}}",
-        success = "用户随机获取{{#count}}杯{{#type}}类型的酒"
-    )
+            type = WineEvent.WINE,
+            subType = WineEvent.BehaviorEvent.WINE_RANDOM,
+            bizNo = "{{#type}}-{{#count}}",
+            success = "用户随机获取{{#count}}杯{{#type}}类型的酒")
     @GetMapping("/random")
     @Operation(summary = "随机来一杯或多杯", description = "根据类型随机获取酒，支持三种类型：mixed(完全随机)、user(用户酒库随机)、iba(AI酒单随机)")
     @Parameter(name = "type", description = "随机类型：mixed(完全随机)、user(用户酒库随机)、iba(酒单随机)", required = true)
     @Parameter(name = "count", description = "数量，默认为1", required = false)
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "成功获取随机酒"),
-        @ApiResponse(responseCode = "400", description = "请求参数错误"),
-        @ApiResponse(responseCode = "404", description = "未找到符合条件的酒")
-    })
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "成功获取随机酒"),
+                @ApiResponse(responseCode = "400", description = "请求参数错误"),
+                @ApiResponse(responseCode = "404", description = "未找到符合条件的酒")
+            })
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<CommonResp<RandomWineResp>> getRandomWine(@RequestParam String type, 
-                                                                    @RequestParam(defaultValue = "1") int count) {
+    public ResponseEntity<CommonResp<RandomWineResp>> getRandomWine(
+            @RequestParam String type, @RequestParam(defaultValue = "1") int count) {
         // 验证数量参数
         if (count <= 0 || count > 20) {
-            return ResponseEntity.badRequest()
-                .body(CommonResp.error("数量参数必须在1-20之间"));
+            return ResponseEntity.badRequest().body(CommonResp.error("数量参数必须在1-20之间"));
         }
-        
 
         return ResponseEntity.ok(CommonResp.success(mixedWineService.getRandomWine(type, count)));
     }
-    
-   
-} 
+}

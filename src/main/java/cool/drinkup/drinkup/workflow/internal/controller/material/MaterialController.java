@@ -1,16 +1,5 @@
 package cool.drinkup.drinkup.workflow.internal.controller.material;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
 import cool.drinkup.drinkup.shared.spi.CommonResp;
 import cool.drinkup.drinkup.workflow.internal.controller.material.resp.MaterialVo;
 import cool.drinkup.drinkup.workflow.internal.mapper.MaterialMapper;
@@ -19,7 +8,16 @@ import cool.drinkup.drinkup.workflow.internal.service.material.MaterialService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "材料管理", description = "材料相关接口")
 @RestController
@@ -35,9 +33,8 @@ public class MaterialController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CommonResp<List<MaterialVo>>> getAllMaterials() {
         List<Material> materials = materialService.getAllMaterials();
-        List<MaterialVo> materialVos = materials.stream()
-                .map(materialMapper::toMaterialVo)
-                .collect(Collectors.toList());
+        List<MaterialVo> materialVos =
+                materials.stream().map(materialMapper::toMaterialVo).collect(Collectors.toList());
         return ResponseEntity.ok(CommonResp.success(materialVos));
     }
 
@@ -47,9 +44,8 @@ public class MaterialController {
     public ResponseEntity<CommonResp<List<MaterialVo>>> getMaterialsByCategoryId(
             @Parameter(description = "分类ID") @PathVariable Long categoryId) {
         List<Material> materials = materialService.getMaterialsByCategoryId(categoryId);
-        List<MaterialVo> materialVos = materials.stream()
-                .map(materialMapper::toMaterialVo)
-                .collect(Collectors.toList());
+        List<MaterialVo> materialVos =
+                materials.stream().map(materialMapper::toMaterialVo).collect(Collectors.toList());
         return ResponseEntity.ok(CommonResp.success(materialVos));
     }
 
@@ -59,9 +55,8 @@ public class MaterialController {
     public ResponseEntity<CommonResp<List<MaterialVo>>> getMaterialsByCategoryIds(
             @Parameter(description = "分类ID列表，用逗号分隔", example = "1,2,3") @RequestParam List<Long> categoryIds) {
         List<Material> materials = materialService.getMaterialsByCategoryIds(categoryIds);
-        List<MaterialVo> materialVos = materials.stream()
-                .map(materialMapper::toMaterialVo)
-                .collect(Collectors.toList());
+        List<MaterialVo> materialVos =
+                materials.stream().map(materialMapper::toMaterialVo).collect(Collectors.toList());
         return ResponseEntity.ok(CommonResp.success(materialVos));
     }
 }

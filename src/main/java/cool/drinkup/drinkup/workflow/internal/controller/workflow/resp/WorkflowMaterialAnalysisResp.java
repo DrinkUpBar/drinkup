@@ -8,5 +8,4 @@ import lombok.Data;
 public class WorkflowMaterialAnalysisResp {
     @Schema(description = "材料描述")
     private String description;
-
 }

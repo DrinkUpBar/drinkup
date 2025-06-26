@@ -8,4 +8,4 @@ public class BarProcurementUpdateReq {
     private String type;
     private String iconType;
     private String description;
-} 
+}

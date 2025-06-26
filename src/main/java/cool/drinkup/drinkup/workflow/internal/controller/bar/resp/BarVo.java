@@ -1,7 +1,6 @@
 package cool.drinkup.drinkup.workflow.internal.controller.bar.resp;
 
 import java.util.List;
-
 import lombok.Data;
 
 @Data

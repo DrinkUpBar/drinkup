@@ -1,17 +1,15 @@
 package cool.drinkup.drinkup.infrastructure.internal.image.impl;
 
-import org.springframework.http.MediaType;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import cool.drinkup.drinkup.infrastructure.internal.image.config.properties.GlifProperties;
 import cool.drinkup.drinkup.infrastructure.internal.image.impl.dto.GlifImageRequest;
 import cool.drinkup.drinkup.infrastructure.spi.ImageGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,7 +23,8 @@ public class GlifImageGenerator implements ImageGenerator {
         try {
             GlifImageRequest.Input input = new GlifImageRequest.Input(properties.getWeights(), prompt);
             GlifImageRequest glifImageRequest = new GlifImageRequest(properties.getGlifId(), input);
-            String response = restClient.post()
+            String response = restClient
+                    .post()
                     .uri(properties.getApiUrl())
                     .header("Authorization", properties.getBearerToken())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -35,7 +34,8 @@ public class GlifImageGenerator implements ImageGenerator {
             log.info("Glif API response: {}", response);
             JsonNode jsonNode = objectMapper.readTree(response);
             if (jsonNode.has("error") && !jsonNode.get("error").isNull()) {
-                throw new RuntimeException("Glif API error: " + jsonNode.get("error").asText());
+                throw new RuntimeException(
+                        "Glif API error: " + jsonNode.get("error").asText());
             }
             return jsonNode.get("output").asText();
         } catch (RestClientException e) {

@@ -4,8 +4,5 @@ public interface MaterialAnalysisService {
 
     MaterialAnalysisResult analyzeMaterial(String materialText);
 
-    public record MaterialAnalysisResult(
-        String description
-    ) {
-    }
+    public record MaterialAnalysisResult(String description) {}
 }

@@ -1,11 +1,7 @@
 package cool.drinkup.drinkup.user.internal.service;
 
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import cool.drinkup.drinkup.user.internal.model.ApplePublicKey;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.PublicKey;
@@ -13,10 +9,11 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import cool.drinkup.drinkup.user.internal.model.ApplePublicKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 /**
  * Apple 公钥服务
@@ -37,7 +34,7 @@ public class ApplePublicKeyService {
 
     /**
      * 根据密钥ID获取公钥
-     * 
+     *
      * @param keyId 密钥ID
      * @return 公钥，如果未找到则返回null
      */
@@ -55,7 +52,7 @@ public class ApplePublicKeyService {
 
     /**
      * 从Apple服务器获取公钥并缓存
-     * 
+     *
      * @param keyId 密钥ID
      * @return 公钥，如果未找到则返回null
      */
@@ -100,15 +97,13 @@ public class ApplePublicKeyService {
 
     /**
      * 获取Apple公钥列表
-     * 
+     *
      * @return Apple公钥列表
      */
     private ApplePublicKey getApplePublicKeys() {
         try {
-            String response = restClient.get()
-                    .uri(APPLE_PUBLIC_KEYS_URL)
-                    .retrieve()
-                    .body(String.class);
+            String response =
+                    restClient.get().uri(APPLE_PUBLIC_KEYS_URL).retrieve().body(String.class);
             return objectMapper.readValue(response, ApplePublicKey.class);
         } catch (Exception e) {
             log.error("获取Apple公钥列表失败: {}", e.getMessage(), e);
@@ -118,7 +113,7 @@ public class ApplePublicKeyService {
 
     /**
      * 根据模数和指数构建RSA公钥
-     * 
+     *
      * @param modulus  模数 (n)
      * @param exponent 指数 (e)
      * @return RSA公钥

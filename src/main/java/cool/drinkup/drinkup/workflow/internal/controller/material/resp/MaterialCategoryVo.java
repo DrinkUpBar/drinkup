@@ -1,8 +1,6 @@
 package cool.drinkup.drinkup.workflow.internal.controller.material.resp;
 
-
 import java.util.List;
-
 import lombok.Data;
 
 @Data
@@ -16,4 +14,4 @@ public class MaterialCategoryVo {
     private String createdDate;
     private String updatedDate;
     private List<MaterialCategoryVo> children;
-} 
+}

@@ -13,7 +13,7 @@ public class RestClientConfig {
 
     /**
      * 创建RestClient Bean
-     * 
+     *
      * @return RestClient实例
      */
     @Bean

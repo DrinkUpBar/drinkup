@@ -1,13 +1,11 @@
 package cool.drinkup.drinkup.user.internal.service.strategy;
 
-import org.springframework.stereotype.Component;
-
+import cool.drinkup.drinkup.user.internal.controller.req.LoginRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import cool.drinkup.drinkup.user.internal.controller.req.LoginRequest;
+import org.springframework.stereotype.Component;
 
 /**
  * 登录策略工厂
@@ -19,11 +17,8 @@ public class LoginStrategyFactory {
     private final Map<LoginRequest.LoginType, LoginStrategy> strategyMap;
 
     public LoginStrategyFactory(List<LoginStrategy> strategies) {
-        this.strategyMap = strategies.stream()
-                .collect(Collectors.toMap(
-                        LoginStrategy::getLoginType,
-                        Function.identity()
-                ));
+        this.strategyMap =
+                strategies.stream().collect(Collectors.toMap(LoginStrategy::getLoginType, Function.identity()));
     }
 
     /**
@@ -48,4 +43,4 @@ public class LoginStrategyFactory {
     public boolean isSupported(LoginRequest.LoginType loginType) {
         return strategyMap.containsKey(loginType);
     }
-} 
+}

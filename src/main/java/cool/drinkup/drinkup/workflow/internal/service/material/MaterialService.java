@@ -1,12 +1,10 @@
 package cool.drinkup.drinkup.workflow.internal.service.material;
 
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-
 import cool.drinkup.drinkup.workflow.internal.model.Material;
 import cool.drinkup.drinkup.workflow.internal.repository.MaterialRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +26,6 @@ public class MaterialService {
         return materialRepository.findAllActiveMaterialsOrderByCategoryAndSort();
     }
 
-
     /**
      * 根据分类ID列表获取材料
      */
@@ -42,4 +39,4 @@ public class MaterialService {
     public Material getMaterialById(Long materialId) {
         return materialRepository.findById(materialId).orElse(null);
     }
-} 
+}

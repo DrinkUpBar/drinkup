@@ -11,11 +11,11 @@ public class AddFavoriteRequest {
     @Schema(description = "收藏对象类型", required = true)
     @NotNull
     private FavoriteType objectType;
-    
+
     @Schema(description = "收藏对象ID", required = true)
     @NotNull
     private Long objectId;
-    
+
     @Schema(description = "收藏备注（可选）")
     private String note;
 }

@@ -1,5 +1,23 @@
 package cool.drinkup.drinkup.workflow.internal.service.chat;
 
+import cool.drinkup.drinkup.common.chatLog.annotation.AiLog;
+import cool.drinkup.drinkup.workflow.internal.config.ChatBotProperties;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatReq.WorkflowUserChatVo;
+import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
+import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
+import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
+import cool.drinkup.drinkup.workflow.internal.service.chat.dto.ChatParams;
+import cool.drinkup.drinkup.workflow.internal.service.chat.dto.ChatParams.ImageAttachment;
+import cool.drinkup.drinkup.workflow.internal.service.image.ImageService;
+import cool.drinkup.drinkup.workflow.internal.util.ContentTypeUtil;
+import io.micrometer.observation.annotation.Observed;
+import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -17,26 +35,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeType;
 import org.springframework.util.StringUtils;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import cool.drinkup.drinkup.common.chatLog.annotation.AiLog;
-import cool.drinkup.drinkup.workflow.internal.config.ChatBotProperties;
-import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatReq.WorkflowUserChatVo;
-import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
-import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
-import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
-import cool.drinkup.drinkup.workflow.internal.service.chat.dto.ChatParams;
-import cool.drinkup.drinkup.workflow.internal.service.chat.dto.ChatParams.ImageAttachment;
-import cool.drinkup.drinkup.workflow.internal.service.image.ImageService;
-import cool.drinkup.drinkup.workflow.internal.util.ContentTypeUtil;
-import io.micrometer.observation.annotation.Observed;
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -56,9 +54,13 @@ public class ChatBotService {
 
     private String promptTemplate;
 
-    public ChatBotService(@Qualifier("chatBotModel") ChatModel chatModel,
-            @Qualifier("chatBotChatMemory") ChatMemory chatMemory, ImageService imageService,
-            ContentTypeUtil contentTypeUtil, ChatBotProperties chatBotProperties, PromptRepository promptRepository) {
+    public ChatBotService(
+            @Qualifier("chatBotModel") ChatModel chatModel,
+            @Qualifier("chatBotChatMemory") ChatMemory chatMemory,
+            ImageService imageService,
+            ContentTypeUtil contentTypeUtil,
+            ChatBotProperties chatBotProperties,
+            PromptRepository promptRepository) {
         this.chatModel = chatModel;
         this.imageService = imageService;
         this.contentTypeUtil = contentTypeUtil;
@@ -76,12 +78,12 @@ public class ChatBotService {
         this.promptTemplate = prompt.getSystemPrompt();
     }
 
-    public record ChatBotResponse(String conversationId, String content) {
-    }
+    public record ChatBotResponse(String conversationId, String content) {}
 
-    @Observed(name = "ai.chat", contextualName = "AI聊天", lowCardinalityKeyValues = {
-            "Tag", "ai"
-    })
+    @Observed(
+            name = "ai.chat",
+            contextualName = "AI聊天",
+            lowCardinalityKeyValues = {"Tag", "ai"})
     public String chat(List<WorkflowUserChatVo> messages, ChatParams params) {
         var prompt = buildPrompt(messages, params);
         var response = chatModel.call(prompt);
@@ -113,23 +115,30 @@ public class ChatBotService {
             try {
                 String mime = contentTypeUtil.detectMimeType(resource);
                 Media media = new Media(MimeType.valueOf(mime), resource);
-                UserMessage userMessage = UserMessage.builder().text("This is the image of the user's stock: ").media(
-                        List.of(media)).build();
+                UserMessage userMessage = UserMessage.builder()
+                        .text("This is the image of the user's stock: ")
+                        .media(List.of(media))
+                        .build();
                 allMessages.add(userMessage);
             } catch (IOException e) {
                 log.error("Error loading image: {}", e.getMessage());
             }
         }
 
-        return new Prompt(allMessages, OpenAiChatOptions.builder()
-                .model(chatBotProperties.getModel())
-                .responseFormat(ResponseFormat.builder().type(ResponseFormat.Type.JSON_OBJECT).build())
-                .build());
+        return new Prompt(
+                allMessages,
+                OpenAiChatOptions.builder()
+                        .model(chatBotProperties.getModel())
+                        .responseFormat(ResponseFormat.builder()
+                                .type(ResponseFormat.Type.JSON_OBJECT)
+                                .build())
+                        .build());
     }
 
-    @Observed(name = "ai.chat", contextualName = "AI聊天", lowCardinalityKeyValues = {
-            "Tag", "ai"
-    })
+    @Observed(
+            name = "ai.chat",
+            contextualName = "AI聊天",
+            lowCardinalityKeyValues = {"Tag", "ai"})
     public ChatBotResponse chatV2(String conversationId, String userContent, ChatParams params) {
         if (!StringUtils.hasText(conversationId)) {
             conversationId = UUID.randomUUID().toString();
@@ -159,8 +168,8 @@ public class ChatBotService {
     }
 
     /**
-             * 动态更新指定对话中的 SystemMessage
-     * 
+     * 动态更新指定对话中的 SystemMessage
+     *
      * @param conversationId 对话ID
      * @param params         包含新的 userStock 的参数
      */
@@ -188,16 +197,19 @@ public class ChatBotService {
     public Prompt buildPrompt(String conversationId, ChatParams params) {
         List<Message> messages = updateSystemMessage(conversationId, params);
 
-        return new Prompt(messages,
+        return new Prompt(
+                messages,
                 OpenAiChatOptions.builder()
                         .model(chatBotProperties.getModel())
                         .responseFormat(ResponseFormat.builder()
-                                .type(ResponseFormat.Type.JSON_OBJECT).build())
+                                .type(ResponseFormat.Type.JSON_OBJECT)
+                                .build())
                         .build());
     }
 
     private List<Message> buildUserMessage(String userInput, ChatParams params) {
-        if (params.getImageAttachmentList() != null && !params.getImageAttachmentList().isEmpty()) {
+        if (params.getImageAttachmentList() != null
+                && !params.getImageAttachmentList().isEmpty()) {
             List<Message> userMessages = new ArrayList<>();
             userMessages.add(UserMessage.builder().text(userInput).build());
             for (ImageAttachment imageAttachment : params.getImageAttachmentList()) {
@@ -208,7 +220,8 @@ public class ChatBotService {
                     userMessages.add(UserMessage.builder()
                             .text("This is the image of the user's uploaded. image id is "
                                     + imageAttachment.getImageId())
-                            .media(List.of(media)).build());
+                            .media(List.of(media))
+                            .build());
                 } catch (IOException e) {
                     log.error("Error loading image: {}", e.getMessage(), e);
                     throw new RuntimeException("Image load error");
@@ -219,5 +232,4 @@ public class ChatBotService {
             return List.of(UserMessage.builder().text(userInput).build());
         }
     }
-
 }

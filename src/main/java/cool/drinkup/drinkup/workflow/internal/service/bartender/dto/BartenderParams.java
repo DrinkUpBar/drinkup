@@ -3,7 +3,6 @@ package cool.drinkup.drinkup.workflow.internal.service.bartender.dto;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +20,7 @@ public class BartenderParams {
     public Map<String, String> toSubstituterMap() {
         Map<String, String> result = new HashMap<>();
         Field[] fields = this.getClass().getDeclaredFields();
-        
+
         for (Field field : fields) {
             field.setAccessible(true);
             try {
@@ -32,7 +31,7 @@ public class BartenderParams {
                 continue;
             }
         }
-        
+
         return result;
     }
 }

@@ -1,5 +1,6 @@
 package cool.drinkup.drinkup.workflow.internal.config;
 
+import lombok.Data;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
@@ -9,8 +10,6 @@ import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import lombok.Data;
 
 @Data
 @Configuration
@@ -34,8 +33,6 @@ public class ChatBotProperties {
         return openAiChatModel;
     }
 
-
-
     @Bean
     public ChatMemory chatBotChatMemory(JdbcChatMemoryRepository jdbcChatMemoryRepository) {
         return MessageWindowChatMemory.builder()
@@ -43,5 +40,4 @@ public class ChatBotProperties {
                 .maxMessages(memory.getMaxMessages())
                 .build();
     }
-    
 }

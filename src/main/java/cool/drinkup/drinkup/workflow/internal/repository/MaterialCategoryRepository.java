@@ -1,14 +1,12 @@
 package cool.drinkup.drinkup.workflow.internal.repository;
 
+import cool.drinkup.drinkup.workflow.internal.model.MaterialCategory;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
-
-import cool.drinkup.drinkup.workflow.internal.model.MaterialCategory;
-
 public interface MaterialCategoryRepository extends JpaRepository<MaterialCategory, Long> {
-    
+
     /**
      * 获取所有活跃的分类，按排序字段排序
      */
@@ -22,6 +20,7 @@ public interface MaterialCategoryRepository extends JpaRepository<MaterialCatego
     /**
      * 获取所有顶级分类（一级分类）
      */
-    @Query("SELECT mc FROM MaterialCategory mc WHERE mc.parentId IS NULL AND mc.isActive = true ORDER BY mc.sortOrder ASC")
+    @Query("SELECT mc FROM MaterialCategory mc WHERE mc.parentId IS NULL AND mc.isActive = true"
+            + " ORDER BY mc.sortOrder ASC")
     List<MaterialCategory> findTopLevelCategories();
-} 
+}

@@ -1,14 +1,6 @@
 package cool.drinkup.drinkup.user.internal.service.strategy.impl;
 
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
 import cool.drinkup.drinkup.user.internal.controller.req.LoginRequest;
 import cool.drinkup.drinkup.user.internal.model.OAuthTypeEnum;
 import cool.drinkup.drinkup.user.internal.model.RoleEnum;
@@ -17,8 +9,13 @@ import cool.drinkup.drinkup.user.internal.service.GoogleTokenService;
 import cool.drinkup.drinkup.user.internal.service.UserOAuthService;
 import cool.drinkup.drinkup.user.internal.service.UserService;
 import cool.drinkup.drinkup.user.internal.service.strategy.LoginStrategy;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * 改进版Google登录策略 - 支持多种OAuth方式登录
@@ -45,7 +42,7 @@ public class GoogleLoginStrategy implements LoginStrategy {
     public boolean validateCredentials(LoginRequest loginRequest) {
         String idToken = loginRequest.getIdToken();
 
-        if ( !StringUtils.hasText(idToken)) {
+        if (!StringUtils.hasText(idToken)) {
             log.warn("Google ID 令牌为空");
             return false;
         }
@@ -63,7 +60,7 @@ public class GoogleLoginStrategy implements LoginStrategy {
     public LoginResult getOrCreateUser(LoginRequest loginRequest) {
         try {
             GoogleIdToken token = googleTokenService.verifyIdToken(loginRequest.getIdToken());
-            if ( token == null) {
+            if (token == null) {
                 throw new RuntimeException("无效的 Google 令牌");
             }
 
@@ -75,7 +72,7 @@ public class GoogleLoginStrategy implements LoginStrategy {
 
             // 1. 首先尝试通过OAuth ID直接查找已绑定的用户
             Optional<User> existingUser = userOAuthService.findUserByOAuth(oauthId, OAuthTypeEnum.GOOGLE);
-            if ( existingUser.isPresent()) {
+            if (existingUser.isPresent()) {
                 User user = existingUser.get();
                 // 更新最后使用时间
                 userOAuthService.updateLastUsedDate(oauthId, OAuthTypeEnum.GOOGLE);
@@ -85,18 +82,17 @@ public class GoogleLoginStrategy implements LoginStrategy {
 
             // 2. 如果通过OAuth ID找不到，尝试通过邮箱查找现有用户
             Optional<User> userByEmail = findUserByEmail(email);
-            if ( userByEmail.isPresent()) {
+            if (userByEmail.isPresent()) {
                 User user = userByEmail.get();
 
                 // 检查用户是否已经绑定了Google账号
-                if ( userOAuthService.hasOAuthBinding(user, OAuthTypeEnum.GOOGLE)) {
+                if (userOAuthService.hasOAuthBinding(user, OAuthTypeEnum.GOOGLE)) {
                     log.warn("用户 {} 已绑定其他Google账号，无法绑定新的Google账号", user.getId());
                     throw new RuntimeException("该邮箱对应的用户已绑定其他Google账号");
                 }
 
                 // 为现有用户绑定新的Google账号
-                userOAuthService.createOAuthBinding(user, oauthId, OAuthTypeEnum.GOOGLE,
-                        email, name, picture);
+                userOAuthService.createOAuthBinding(user, oauthId, OAuthTypeEnum.GOOGLE, email, name, picture);
 
                 log.info("为现有用户 {} 绑定了新的Google账号", user.getId());
                 return new LoginResult(user, false);
@@ -117,7 +113,7 @@ public class GoogleLoginStrategy implements LoginStrategy {
     public String getUserIdentifier(LoginRequest loginRequest) {
         try {
             GoogleIdToken token = googleTokenService.verifyIdToken(loginRequest.getIdToken());
-            if ( token != null) {
+            if (token != null) {
                 return token.getPayload().getEmail();
             }
         } catch (Exception e) {
@@ -130,13 +126,13 @@ public class GoogleLoginStrategy implements LoginStrategy {
      * 通过邮箱查找用户（优先使用OAuth邮箱，其次使用主邮箱）
      */
     private Optional<User> findUserByEmail(String email) {
-        if ( !StringUtils.hasText(email)) {
+        if (!StringUtils.hasText(email)) {
             return Optional.empty();
         }
 
         // 先通过OAuth邮箱查找
         Optional<User> userByOAuthEmail = userOAuthService.findUserByOAuthEmail(email);
-        if ( userByOAuthEmail.isPresent()) {
+        if (userByOAuthEmail.isPresent()) {
             return userByOAuthEmail;
         }
 
@@ -168,8 +164,7 @@ public class GoogleLoginStrategy implements LoginStrategy {
         User savedUser = userService.save(user);
 
         // 创建OAuth绑定
-        userOAuthService.createOAuthBinding(savedUser, oauthId, OAuthTypeEnum.GOOGLE,
-                email, name, picture);
+        userOAuthService.createOAuthBinding(savedUser, oauthId, OAuthTypeEnum.GOOGLE, email, name, picture);
 
         return savedUser;
     }
@@ -180,9 +175,9 @@ public class GoogleLoginStrategy implements LoginStrategy {
     private String generateUniqueUsername(String name, String email) {
         String baseUsername;
 
-        if ( StringUtils.hasText(name)) {
+        if (StringUtils.hasText(name)) {
             baseUsername = name.replaceAll("[^a-zA-Z0-9]", "");
-        } else if ( StringUtils.hasText(email)) {
+        } else if (StringUtils.hasText(email)) {
             baseUsername = email.split("@")[0].replaceAll("[^a-zA-Z0-9]", "");
         } else {
             baseUsername = "google_user";

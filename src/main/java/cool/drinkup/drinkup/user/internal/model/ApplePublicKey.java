@@ -1,7 +1,6 @@
 package cool.drinkup.drinkup.user.internal.model;
 
 import java.util.List;
-
 import lombok.Data;
 
 /**

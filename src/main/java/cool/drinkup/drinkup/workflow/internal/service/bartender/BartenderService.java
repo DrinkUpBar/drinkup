@@ -1,5 +1,21 @@
 package cool.drinkup.drinkup.workflow.internal.service.bartender;
 
+import cool.drinkup.drinkup.common.chatLog.annotation.AiLog;
+import cool.drinkup.drinkup.workflow.internal.config.BartenderProperties;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatReq.WorkflowBartenderChatVo;
+import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
+import cool.drinkup.drinkup.workflow.internal.exception.RetryException;
+import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
+import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
+import cool.drinkup.drinkup.workflow.internal.service.bartender.dto.BartenderParams;
+import io.micrometer.observation.annotation.Observed;
+import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -19,24 +35,6 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import cool.drinkup.drinkup.common.chatLog.annotation.AiLog;
-import cool.drinkup.drinkup.workflow.internal.config.BartenderProperties;
-import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatReq.WorkflowBartenderChatVo;
-import cool.drinkup.drinkup.workflow.internal.enums.PromptTypeEnum;
-import cool.drinkup.drinkup.workflow.internal.exception.RetryException;
-import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
-import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
-import cool.drinkup.drinkup.workflow.internal.service.bartender.dto.BartenderParams;
-import io.micrometer.observation.annotation.Observed;
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Service
 public class BartenderService {
@@ -53,9 +51,13 @@ public class BartenderService {
 
     private final ChatMemory chatMemory;
 
-    public BartenderService(@Qualifier("bartenderChatModel") ChatModel chatModel, @Qualifier("bartenderRecoverableChatModel") ChatModel recoverableChatModel,
-        BartenderProperties bartenderProperties, PromptRepository promptRepository, ChatMemory chatMemory)
-        throws IOException {
+    public BartenderService(
+            @Qualifier("bartenderChatModel") ChatModel chatModel,
+            @Qualifier("bartenderRecoverableChatModel") ChatModel recoverableChatModel,
+            BartenderProperties bartenderProperties,
+            PromptRepository promptRepository,
+            ChatMemory chatMemory)
+            throws IOException {
         this.chatModel = chatModel;
         this.recoverableChatModel = recoverableChatModel;
         this.bartenderProperties = bartenderProperties;
@@ -73,15 +75,13 @@ public class BartenderService {
     }
 
     @Retryable(
-        value = {RuntimeException.class},
-        maxAttempts = 3,
-        backoff = @Backoff(delay = 1000)
-    )
-    @Observed(name = "ai.bartender.chat",
-        contextualName = "Bartender聊天",
-        lowCardinalityKeyValues = {
-            "Tag", "ai"
-        })
+            value = {RuntimeException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000))
+    @Observed(
+            name = "ai.bartender.chat",
+            contextualName = "Bartender聊天",
+            lowCardinalityKeyValues = {"Tag", "ai"})
     public String generateDrinkV2(String conversationId, BartenderParams bartenderParams) {
         try {
             var prompt = buildPromptV2(conversationId, bartenderParams);
@@ -114,11 +114,10 @@ public class BartenderService {
     }
 
     @Recover
-    @Observed(name = "ai.bartender.chat",
-        contextualName = "Bartender聊天重试",
-        lowCardinalityKeyValues = {
-            "Tag", "ai"
-        })
+    @Observed(
+            name = "ai.bartender.chat",
+            contextualName = "Bartender聊天重试",
+            lowCardinalityKeyValues = {"Tag", "ai"})
     public String generateDrinkV2(RetryException exception, String conversationId, BartenderParams bartenderParams) {
         try {
             var prompt = buildPromptV2(conversationId, bartenderParams);
@@ -139,7 +138,6 @@ public class BartenderService {
         }
     }
 
-
     private Prompt buildPromptV2(String conversationId, BartenderParams bartenderParams) {
         if (!StringUtils.hasText(conversationId)) {
             conversationId = UUID.randomUUID().toString();
@@ -149,29 +147,26 @@ public class BartenderService {
             var systemMessage = new SystemMessage(systemPrompt);
             this.chatMemory.add(conversationId, systemMessage);
         }
-        return new Prompt(this.chatMemory.get(conversationId),
-            OpenAiChatOptions.builder()
-                .model(bartenderProperties.getModel())
-                .temperature(bartenderProperties.getTemperature())
-                .responseFormat(
-                    ResponseFormat
-                        .builder()
-                        .type(ResponseFormat.Type.JSON_OBJECT)
-                        .build())
-                .build());
+        return new Prompt(
+                this.chatMemory.get(conversationId),
+                OpenAiChatOptions.builder()
+                        .model(bartenderProperties.getModel())
+                        .temperature(bartenderProperties.getTemperature())
+                        .responseFormat(ResponseFormat.builder()
+                                .type(ResponseFormat.Type.JSON_OBJECT)
+                                .build())
+                        .build());
     }
 
     @Deprecated
     @Retryable(
-        value = {RuntimeException.class},
-        maxAttempts = 3,
-        backoff = @Backoff(delay = 1000)
-    )
-    @Observed(name = "ai.bartender.chat",
-        contextualName = "Bartender聊天",
-        lowCardinalityKeyValues = {
-            "Tag", "ai"
-        })
+            value = {RuntimeException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000))
+    @Observed(
+            name = "ai.bartender.chat",
+            contextualName = "Bartender聊天",
+            lowCardinalityKeyValues = {"Tag", "ai"})
     public String generateDrink(List<WorkflowBartenderChatVo> messages, BartenderParams bartenderParams) {
         try {
             var prompt = buildPrompt(messages, bartenderParams);
@@ -196,22 +191,22 @@ public class BartenderService {
     // This recover method is only for the deprecated generateDrink method
     /*
      * @Deprecated
-     * 
+     *
      * @Recover
-     * 
+     *
      * @Observed(name = "ai.bartender.chat", contextualName = "Bartender聊天重试", lowCardinalityKeyValues = { "Tag", "ai"
      * }) public String generateDrinkRecoverable(RetryException exception, List<WorkflowBartenderChatVo> messages,
      * BartenderParams bartenderParams) { // This method is deprecated and should not be used for generateDrinkV2
      * recovery // Only for the deprecated generateDrink method if ( messages == null) {
      * log.error("Messages is null in deprecated recover method, this should not happen for V2 methods"); throw new
      * RuntimeException("Invalid recovery method called for V2 API"); }
-     * 
+     *
      * try { var prompt = buildPrompt(messages, bartenderParams); var response = recoverableChatModel.call(prompt);
      * log.info("bartender response: {}", response);
-     * 
+     *
      * if (response.getResult() == null) { log.error("AI response result is null. Response details: {}", response);
      * throw new RuntimeException("AI response result is null"); }
-     * 
+     *
      * String text = response.getResult().getOutput().getText(); log.info("Chat response: {}", text); return text; }
      * catch (Exception e) { log.error("Error generating drink recommendation", e); throw new
      * RuntimeException("Error generating drink recommendation after retry"); } }
@@ -224,30 +219,29 @@ public class BartenderService {
 
         var systemMessage = new SystemMessage(systemPrompt);
         var historyMessages = messages.stream()
-            .map(message -> {
-                if (message.getRole().equals("user")) {
-                    return new UserMessage(message.getContent());
-                } else if (message.getRole().equals("assistant")) {
-                    return new AssistantMessage(message.getContent());
-                } else {
-                    throw new IllegalArgumentException("Invalid message role: " + message.getRole());
-                }
-            })
-            .toList();
+                .map(message -> {
+                    if (message.getRole().equals("user")) {
+                        return new UserMessage(message.getContent());
+                    } else if (message.getRole().equals("assistant")) {
+                        return new AssistantMessage(message.getContent());
+                    } else {
+                        throw new IllegalArgumentException("Invalid message role: " + message.getRole());
+                    }
+                })
+                .toList();
 
         var allMessages = new ArrayList<Message>();
         allMessages.add(systemMessage);
         allMessages.addAll(historyMessages);
 
-        return new Prompt(allMessages, OpenAiChatOptions.builder()
-            .model(bartenderProperties.getModel())
-            .temperature(bartenderProperties.getTemperature())
-            .responseFormat(
-                ResponseFormat
-                    .builder()
-                    .type(ResponseFormat.Type.JSON_OBJECT)
-                    .build())
-            .build());
+        return new Prompt(
+                allMessages,
+                OpenAiChatOptions.builder()
+                        .model(bartenderProperties.getModel())
+                        .temperature(bartenderProperties.getTemperature())
+                        .responseFormat(ResponseFormat.builder()
+                                .type(ResponseFormat.Type.JSON_OBJECT)
+                                .build())
+                        .build());
     }
-
 }

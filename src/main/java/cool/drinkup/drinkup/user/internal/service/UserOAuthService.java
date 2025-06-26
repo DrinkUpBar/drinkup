@@ -1,17 +1,15 @@
 package cool.drinkup.drinkup.user.internal.service;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-
 import cool.drinkup.drinkup.user.internal.model.OAuthTypeEnum;
 import cool.drinkup.drinkup.user.internal.model.User;
 import cool.drinkup.drinkup.user.internal.model.UserOAuth;
 import cool.drinkup.drinkup.user.internal.repository.UserOAuthRepository;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 用户OAuth绑定服务
@@ -28,7 +26,8 @@ public class UserOAuthService {
      */
     @Transactional(readOnly = true)
     public Optional<User> findUserByOAuth(String oauthId, OAuthTypeEnum oauthType) {
-        return userOAuthRepository.findByOauthIdAndOauthTypeAndEnabledTrue(oauthId, oauthType)
+        return userOAuthRepository
+                .findByOauthIdAndOauthTypeAndEnabledTrue(oauthId, oauthType)
                 .map(UserOAuth::getUser);
     }
 
@@ -60,16 +59,21 @@ public class UserOAuthService {
      * 为用户创建新的OAuth绑定
      */
     @Transactional
-    public UserOAuth createOAuthBinding(User user, String oauthId, OAuthTypeEnum oauthType,
-            String oauthEmail, String oauthUsername, String oauthAvatar) {
+    public UserOAuth createOAuthBinding(
+            User user,
+            String oauthId,
+            OAuthTypeEnum oauthType,
+            String oauthEmail,
+            String oauthUsername,
+            String oauthAvatar) {
 
         // 检查是否已存在相同的OAuth绑定
-        if ( userOAuthRepository.existsByOauthIdAndOauthType(oauthId, oauthType)) {
+        if (userOAuthRepository.existsByOauthIdAndOauthType(oauthId, oauthType)) {
             throw new IllegalArgumentException("OAuth绑定已存在: " + oauthType + " - " + oauthId);
         }
 
         // 检查用户是否已绑定同类型的OAuth
-        if ( hasOAuthBinding(user, oauthType)) {
+        if (hasOAuthBinding(user, oauthType)) {
             throw new IllegalArgumentException("用户已绑定" + oauthType + "账号");
         }
 
@@ -79,7 +83,7 @@ public class UserOAuthService {
 
         // 如果这是用户的第一个OAuth绑定，设置为主要绑定
         int existingBindingsCount = userOAuthRepository.countByUserAndEnabledTrue(user);
-        if ( existingBindingsCount == 0) {
+        if (existingBindingsCount == 0) {
             userOAuth.setPrimary(true);
         }
 
@@ -93,8 +97,8 @@ public class UserOAuthService {
      * 更新OAuth绑定信息
      */
     @Transactional
-    public UserOAuth updateOAuthBinding(UserOAuth userOAuth, String oauthEmail,
-            String oauthUsername, String oauthAvatar) {
+    public UserOAuth updateOAuthBinding(
+            UserOAuth userOAuth, String oauthEmail, String oauthUsername, String oauthAvatar) {
         userOAuth.setOauthEmail(oauthEmail);
         userOAuth.setOauthUsername(oauthUsername);
         userOAuth.setOauthAvatar(oauthAvatar);
@@ -113,7 +117,7 @@ public class UserOAuthService {
 
         // 然后设置指定类型为主要
         Optional<UserOAuth> oauthBinding = userOAuthRepository.findByUserAndOauthTypeAndEnabledTrue(user, oauthType);
-        if ( oauthBinding.isPresent()) {
+        if (oauthBinding.isPresent()) {
             UserOAuth userOAuth = oauthBinding.get();
             userOAuth.setPrimary(true);
             userOAuthRepository.save(userOAuth);
@@ -129,23 +133,23 @@ public class UserOAuthService {
     @Transactional
     public void unbindOAuth(User user, OAuthTypeEnum oauthType) {
         Optional<UserOAuth> oauthBinding = userOAuthRepository.findByUserAndOauthTypeAndEnabledTrue(user, oauthType);
-        if ( oauthBinding.isPresent()) {
+        if (oauthBinding.isPresent()) {
             UserOAuth userOAuth = oauthBinding.get();
 
             // 检查是否是最后一个OAuth绑定（保留至少一个登录方式）
             int bindingCount = userOAuthRepository.countByUserAndEnabledTrue(user);
-            if ( bindingCount <= 1 && (user.getPhone() == null || user.getPhone().isEmpty())) {
+            if (bindingCount <= 1 && (user.getPhone() == null || user.getPhone().isEmpty())) {
                 throw new IllegalArgumentException("不能解绑最后一个登录方式，请先绑定手机号或其他OAuth账号");
             }
 
             // 如果解绑的是主要绑定，需要设置新的主要绑定
-            if ( userOAuth.isPrimary()) {
+            if (userOAuth.isPrimary()) {
                 userOAuth.setPrimary(false);
                 userOAuthRepository.save(userOAuth);
 
                 // 选择另一个OAuth绑定作为主要绑定
                 List<UserOAuth> otherBindings = userOAuthRepository.findByUserAndEnabledTrue(user);
-                if ( !otherBindings.isEmpty()) {
+                if (!otherBindings.isEmpty()) {
                     UserOAuth newPrimary = otherBindings.get(0);
                     newPrimary.setPrimary(true);
                     userOAuthRepository.save(newPrimary);
@@ -167,9 +171,9 @@ public class UserOAuthService {
      */
     @Transactional
     public void updateLastUsedDate(String oauthId, OAuthTypeEnum oauthType) {
-        Optional<UserOAuth> oauthBinding = userOAuthRepository.findByOauthIdAndOauthTypeAndEnabledTrue(oauthId,
-                oauthType);
-        if ( oauthBinding.isPresent()) {
+        Optional<UserOAuth> oauthBinding =
+                userOAuthRepository.findByOauthIdAndOauthTypeAndEnabledTrue(oauthId, oauthType);
+        if (oauthBinding.isPresent()) {
             UserOAuth userOAuth = oauthBinding.get();
             userOAuth.updateLastUsedDate();
             userOAuthRepository.save(userOAuth);
@@ -182,6 +186,8 @@ public class UserOAuthService {
     @Transactional(readOnly = true)
     public Optional<User> findUserByOAuthEmail(String email) {
         List<UserOAuth> oauthBindings = userOAuthRepository.findByOauthEmailAndEnabledTrue(email);
-        return oauthBindings.isEmpty() ? Optional.empty() : Optional.of(oauthBindings.get(0).getUser());
+        return oauthBindings.isEmpty()
+                ? Optional.empty()
+                : Optional.of(oauthBindings.get(0).getUser());
     }
 }

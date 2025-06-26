@@ -1,12 +1,10 @@
 package cool.drinkup.drinkup.user.internal.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * Apple OAuth 配置
@@ -55,7 +53,7 @@ public class AppleOAuthConfig {
     /**
      * 获取所有有效的客户端ID列表
      * 优先返回clientIds列表，如果为空则返回包含单个clientId的列表
-     * 
+     *
      * @return 有效的客户端ID列表
      */
     public List<String> getAllClientIds() {
@@ -74,7 +72,7 @@ public class AppleOAuthConfig {
 
     /**
      * 检查给定的客户端ID是否在允许的列表中
-     * 
+     *
      * @param targetClientId 要检查的客户端ID
      * @return 如果客户端ID有效则返回true
      */
@@ -88,7 +86,7 @@ public class AppleOAuthConfig {
 
     /**
      * 获取主要的客户端ID（用于向后兼容）
-     * 
+     *
      * @return 主要的客户端ID
      */
     public String getPrimaryClientId() {

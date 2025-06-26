@@ -16,4 +16,4 @@ public class MaterialVo {
     private String updatedDate;
     private MaterialCategoryVo category;
     private String tag = WorkflowConstant.MATERIAL_TAG;
-} 
+}

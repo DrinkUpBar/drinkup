@@ -8,5 +8,4 @@ public class WorkflowUserChatV2Req {
     private String conversationId;
     private String userMessage;
     private Attachment attachment = new Attachment();
-
 }

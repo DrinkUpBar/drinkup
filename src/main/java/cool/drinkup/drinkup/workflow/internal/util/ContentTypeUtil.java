@@ -1,17 +1,15 @@
 package cool.drinkup.drinkup.workflow.internal.util;
 
-import org.apache.tika.Tika;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-
+import jakarta.servlet.ServletContext;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.nio.file.Files;
-
-import jakarta.servlet.ServletContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tika.Tika;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -30,7 +28,7 @@ public class ContentTypeUtil {
             log.error("Failed to detect MIME type", e);
         }
 
-        if ( mimeType == null && servletContext != null) {
+        if (mimeType == null && servletContext != null) {
             mimeType = servletContext.getMimeType(resource.getFilename());
         }
 
@@ -39,7 +37,7 @@ public class ContentTypeUtil {
         }
 
         // 3. 如果还是失败，尝试 Files.probeContentType
-        if ( mimeType == null) {
+        if (mimeType == null) {
             try {
                 mimeType = Files.probeContentType(resource.getFile().toPath());
             } catch (IOException | UnsupportedOperationException ignored) {

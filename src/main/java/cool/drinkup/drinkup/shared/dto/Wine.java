@@ -5,4 +5,4 @@ package cool.drinkup.drinkup.shared.dto;
  */
 public interface Wine {
     String getId();
-} 
+}

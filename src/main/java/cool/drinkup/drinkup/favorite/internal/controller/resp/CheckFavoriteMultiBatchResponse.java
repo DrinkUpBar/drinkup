@@ -1,9 +1,8 @@
 package cool.drinkup.drinkup.favorite.internal.controller.resp;
 
-import java.util.Map;
-
 import cool.drinkup.drinkup.favorite.spi.FavoriteType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 import lombok.Data;
 
 @Data
@@ -11,4 +10,4 @@ import lombok.Data;
 public class CheckFavoriteMultiBatchResponse {
     @Schema(description = "收藏状态Map，key为收藏类型，value为该类型下的收藏状态Map")
     private Map<FavoriteType, Map<Long, Boolean>> statusMap;
-} 
+}

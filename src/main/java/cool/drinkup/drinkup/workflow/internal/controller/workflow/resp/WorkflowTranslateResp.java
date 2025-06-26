@@ -9,5 +9,4 @@ public class WorkflowTranslateResp {
 
     @Schema(description = "翻译结果")
     private String translatedText;
-
 }

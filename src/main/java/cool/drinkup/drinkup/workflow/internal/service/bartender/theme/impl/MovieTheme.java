@@ -1,16 +1,14 @@
 package cool.drinkup.drinkup.workflow.internal.service.bartender.theme.impl;
 
+import cool.drinkup.drinkup.workflow.internal.service.bartender.theme.Theme;
+import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
-import cool.drinkup.drinkup.workflow.internal.service.bartender.theme.Theme;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -32,10 +30,9 @@ public class MovieTheme implements Theme {
             log.error("Read theme failed!", e);
         }
     }
-    
+
     @Override
     public String getName() {
         return this.theme;
     }
-
 }

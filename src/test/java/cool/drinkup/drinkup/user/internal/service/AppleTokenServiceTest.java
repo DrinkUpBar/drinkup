@@ -6,18 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cool.drinkup.drinkup.user.internal.config.AppleOAuthConfig;
+import java.security.PublicKey;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.security.PublicKey;
-import java.util.Map;
-
-import cool.drinkup.drinkup.user.internal.config.AppleOAuthConfig;
 
 /**
  * Apple Token 验证服务测试

@@ -1,13 +1,5 @@
 package cool.drinkup.drinkup.user.internal.model;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Set;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -22,10 +14,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,11 +32,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class User {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(nullable = false, unique = true)
     private String username;
 
@@ -73,23 +71,23 @@ public class User {
 
     @Column(nullable = true)
     private String avatar;
-    
+
     @Column(nullable = true)
     private String password;
-    
+
     @Column(nullable = true, unique = true)
     private String phone;
 
     private boolean enabled = true;
-    
+
     @CreationTimestamp
     @Column(name = "create_date", updatable = false, columnDefinition = "DATETIME")
     private ZonedDateTime createDate = ZonedDateTime.now(ZoneOffset.UTC);
-    
+
     @UpdateTimestamp
     @Column(name = "update_date", columnDefinition = "DATETIME")
     private ZonedDateTime updateDate = ZonedDateTime.now(ZoneOffset.UTC);
-    
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
@@ -99,7 +97,7 @@ public class User {
      * 获取主要的OAuth绑定
      */
     public UserOAuth getPrimaryOAuthBinding() {
-        if ( oauthBindings == null) {
+        if (oauthBindings == null) {
             return null;
         }
         return oauthBindings.stream()
@@ -113,18 +111,17 @@ public class User {
      * 检查是否绑定了指定类型的OAuth
      */
     public boolean hasOAuthBinding(OAuthTypeEnum oauthType) {
-        if ( oauthBindings == null) {
+        if (oauthBindings == null) {
             return false;
         }
-        return oauthBindings.stream()
-                .anyMatch(binding -> binding.getOauthType() == oauthType && binding.isEnabled());
+        return oauthBindings.stream().anyMatch(binding -> binding.getOauthType() == oauthType && binding.isEnabled());
     }
 
     /**
      * 获取指定类型的OAuth绑定
      */
     public UserOAuth getOAuthBinding(OAuthTypeEnum oauthType) {
-        if ( oauthBindings == null) {
+        if (oauthBindings == null) {
             return null;
         }
         return oauthBindings.stream()
@@ -132,4 +129,4 @@ public class User {
                 .findFirst()
                 .orElse(null);
     }
-} 
+}

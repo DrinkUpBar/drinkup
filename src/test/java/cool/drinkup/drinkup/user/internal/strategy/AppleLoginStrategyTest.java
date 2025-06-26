@@ -8,18 +8,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import cool.drinkup.drinkup.user.internal.controller.req.LoginRequest;
+import cool.drinkup.drinkup.user.internal.service.AppleTokenService;
+import cool.drinkup.drinkup.user.internal.service.UserService;
+import cool.drinkup.drinkup.user.internal.service.strategy.impl.AppleLoginStrategy;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Map;
-
-import cool.drinkup.drinkup.user.internal.controller.req.LoginRequest;
-import cool.drinkup.drinkup.user.internal.service.AppleTokenService;
-import cool.drinkup.drinkup.user.internal.service.UserService;
-import cool.drinkup.drinkup.user.internal.service.strategy.impl.AppleLoginStrategy;
 
 @ExtendWith(MockitoExtension.class)
 class AppleLoginStrategyTest {
@@ -54,8 +52,7 @@ class AppleLoginStrategyTest {
                 "email", "user@example.com",
                 "email_verified", true);
 
-        when(appleTokenService.verifyIdToken(request.getIdToken()))
-                .thenReturn(userInfo);
+        when(appleTokenService.verifyIdToken(request.getIdToken())).thenReturn(userInfo);
 
         // When
         boolean result = appleLoginStrategy.validateCredentials(request);
@@ -72,8 +69,7 @@ class AppleLoginStrategyTest {
         request.setLoginType(LoginRequest.LoginType.APPLE);
         request.setIdToken("invalid.apple.token");
 
-        when(appleTokenService.verifyIdToken(request.getIdToken()))
-                .thenReturn(null);
+        when(appleTokenService.verifyIdToken(request.getIdToken())).thenReturn(null);
 
         // When
         boolean result = appleLoginStrategy.validateCredentials(request);
@@ -123,8 +119,7 @@ class AppleLoginStrategyTest {
                 "sub", "apple_user_123",
                 "email", "user@example.com");
 
-        when(appleTokenService.verifyIdToken(anyString()))
-                .thenReturn(userInfo);
+        when(appleTokenService.verifyIdToken(anyString())).thenReturn(userInfo);
 
         // When
         String identifier = appleLoginStrategy.getUserIdentifier(request);
@@ -139,8 +134,7 @@ class AppleLoginStrategyTest {
         LoginRequest request = new LoginRequest();
         request.setIdToken("invalid.apple.token");
 
-        when(appleTokenService.verifyIdToken(anyString()))
-                .thenReturn(null);
+        when(appleTokenService.verifyIdToken(anyString())).thenReturn(null);
 
         // When
         String identifier = appleLoginStrategy.getUserIdentifier(request);

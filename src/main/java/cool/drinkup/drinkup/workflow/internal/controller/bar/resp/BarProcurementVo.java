@@ -2,7 +2,6 @@ package cool.drinkup.drinkup.workflow.internal.controller.bar.resp;
 
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import cool.drinkup.drinkup.workflow.internal.model.Bar;
 import lombok.Data;
 

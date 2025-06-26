@@ -1,14 +1,12 @@
 package cool.drinkup.drinkup.workflow.internal.service.material;
 
-import org.springframework.stereotype.Service;
-
+import cool.drinkup.drinkup.workflow.internal.model.MaterialCategory;
+import cool.drinkup.drinkup.workflow.internal.repository.MaterialCategoryRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import cool.drinkup.drinkup.workflow.internal.model.MaterialCategory;
-import cool.drinkup.drinkup.workflow.internal.repository.MaterialCategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -67,4 +65,4 @@ public class MaterialCategoryService {
 
         return rootCategories;
     }
-} 
+}

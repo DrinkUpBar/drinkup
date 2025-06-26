@@ -1,17 +1,15 @@
 package cool.drinkup.drinkup.user.internal.repository;
 
+import cool.drinkup.drinkup.user.internal.model.OAuthTypeEnum;
+import cool.drinkup.drinkup.user.internal.model.User;
+import cool.drinkup.drinkup.user.internal.model.UserOAuth;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
-
-import cool.drinkup.drinkup.user.internal.model.OAuthTypeEnum;
-import cool.drinkup.drinkup.user.internal.model.User;
-import cool.drinkup.drinkup.user.internal.model.UserOAuth;
 
 /**
  * 用户OAuth绑定信息Repository

@@ -8,6 +8,6 @@ import lombok.RequiredArgsConstructor;
 public class GlifImageRequest {
     private final String id;
     private final Input inputs;
-    public record Input(String weights, String prompt) {
-    }
+
+    public record Input(String weights, String prompt) {}
 }

@@ -9,6 +9,7 @@ import lombok.Data;
 public class WorkflowMaterialAnalysisReq {
     @Schema(description = "材料文本")
     private String text;
+
     @Schema(description = "材料列表")
     private AnalysisItem item;
 
@@ -16,6 +17,7 @@ public class WorkflowMaterialAnalysisReq {
     public static class AnalysisItem {
         @Schema(description = "材料ID")
         private Long id;
+
         @Schema(description = "材料类型")
         @Pattern(regexp = "^(MATERIAL|BAR_STOCK)$", message = "材料类型必须是MATERIAL、BAR_STOCK")
         private String type;

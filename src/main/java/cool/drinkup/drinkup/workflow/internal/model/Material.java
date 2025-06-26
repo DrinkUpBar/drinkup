@@ -1,8 +1,5 @@
 package cool.drinkup.drinkup.workflow.internal.model;
 
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
@@ -12,6 +9,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -49,7 +48,10 @@ public class Material {
     private ZonedDateTime updatedDate = ZonedDateTime.now(ZoneOffset.UTC);
 
     @ManyToOne
-    @JoinColumn(name = "category_id", insertable = false, updatable = false, 
-               foreignKey = @ForeignKey(name = "FK_materials_category"))
+    @JoinColumn(
+            name = "category_id",
+            insertable = false,
+            updatable = false,
+            foreignKey = @ForeignKey(name = "FK_materials_category"))
     private MaterialCategory category;
-} 
+}

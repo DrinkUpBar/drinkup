@@ -1,8 +1,7 @@
 package cool.drinkup.drinkup.workflow.internal.controller.workflow.req;
 
-import java.util.List;
-
 import jakarta.validation.constraints.Pattern;
+import java.util.List;
 import lombok.Data;
 
 @Data
@@ -15,6 +14,7 @@ public class WorkflowUserChatReq {
     public static class WorkflowUserChatVo {
         @Pattern(regexp = "^(assistant|user)$", message = "角色只能是 assistant 或 user")
         private String role;
+
         private String content;
     }
 }
