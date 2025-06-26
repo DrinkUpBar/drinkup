@@ -76,7 +76,7 @@ public class BartenderService {
 
     @Retryable(
             value = {RuntimeException.class},
-            maxAttempts = 3,
+            maxAttempts = 1,
             backoff = @Backoff(delay = 1000))
     @Observed(
             name = "ai.bartender.chat",
@@ -186,31 +186,6 @@ public class BartenderService {
             throw new RetryException("Error generating drink recommendation");
         }
     }
-
-    // Commented out to prevent Spring Retry from incorrectly matching this to generateDrinkV2
-    // This recover method is only for the deprecated generateDrink method
-    /*
-     * @Deprecated
-     *
-     * @Recover
-     *
-     * @Observed(name = "ai.bartender.chat", contextualName = "Bartender聊天重试", lowCardinalityKeyValues = { "Tag", "ai"
-     * }) public String generateDrinkRecoverable(RetryException exception, List<WorkflowBartenderChatVo> messages,
-     * BartenderParams bartenderParams) { // This method is deprecated and should not be used for generateDrinkV2
-     * recovery // Only for the deprecated generateDrink method if ( messages == null) {
-     * log.error("Messages is null in deprecated recover method, this should not happen for V2 methods"); throw new
-     * RuntimeException("Invalid recovery method called for V2 API"); }
-     *
-     * try { var prompt = buildPrompt(messages, bartenderParams); var response = recoverableChatModel.call(prompt);
-     * log.info("bartender response: {}", response);
-     *
-     * if (response.getResult() == null) { log.error("AI response result is null. Response details: {}", response);
-     * throw new RuntimeException("AI response result is null"); }
-     *
-     * String text = response.getResult().getOutput().getText(); log.info("Chat response: {}", text); return text; }
-     * catch (Exception e) { log.error("Error generating drink recommendation", e); throw new
-     * RuntimeException("Error generating drink recommendation after retry"); } }
-     */
 
     private Prompt buildPrompt(List<WorkflowBartenderChatVo> messages, BartenderParams bartenderParams) {
         Map<String, String> substituterMap = bartenderParams.toSubstituterMap();

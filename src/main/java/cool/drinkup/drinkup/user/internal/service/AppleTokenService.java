@@ -1,17 +1,7 @@
 package cool.drinkup.drinkup.user.internal.service;
 
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Service;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.security.PublicKey;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 import cool.drinkup.drinkup.user.internal.config.AppleOAuthConfig;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -22,8 +12,15 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import java.security.PublicKey;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Service;
 
 /**
  * Apple Token 验证服务
@@ -45,7 +42,10 @@ public class AppleTokenService {
      * @param idToken Apple ID Token
      * @return 包含用户信息的Map，如果验证失败则返回null
      */
-    @Retryable(value = { Exception.class }, maxAttempts = 3, backoff = @Backoff(delay = 1000))
+    @Retryable(
+            value = {Exception.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000))
     public Map<String, Object> verifyIdToken(String idToken) {
         try {
             log.info("开始验证Apple ID Token");
