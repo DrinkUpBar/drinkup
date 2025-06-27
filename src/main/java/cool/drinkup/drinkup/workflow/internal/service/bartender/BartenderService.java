@@ -9,7 +9,6 @@ import cool.drinkup.drinkup.workflow.internal.model.PromptContent;
 import cool.drinkup.drinkup.workflow.internal.repository.PromptRepository;
 import cool.drinkup.drinkup.workflow.internal.service.bartender.dto.BartenderParams;
 import io.micrometer.observation.annotation.Observed;
-import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,15 +62,6 @@ public class BartenderService {
         this.bartenderProperties = bartenderProperties;
         this.promptRepository = promptRepository;
         this.chatMemory = chatMemory;
-    }
-
-    @PostConstruct
-    public void init() {
-        PromptContent prompt = promptRepository.findByType(PromptTypeEnum.BARTENDER.name());
-        if (prompt == null) {
-            return;
-        }
-        this.promptTemplate = prompt.getSystemPrompt();
     }
 
     @Retryable(
@@ -190,7 +180,7 @@ public class BartenderService {
     private Prompt buildPrompt(List<WorkflowBartenderChatVo> messages, BartenderParams bartenderParams) {
         Map<String, String> substituterMap = bartenderParams.toSubstituterMap();
         StringSubstitutor substitutor = new StringSubstitutor(substituterMap);
-        String systemPrompt = substitutor.replace(promptTemplate);
+        String systemPrompt = substitutor.replace(getPromptTemplate());
 
         var systemMessage = new SystemMessage(systemPrompt);
         var historyMessages = messages.stream()
@@ -218,5 +208,13 @@ public class BartenderService {
                                 .type(ResponseFormat.Type.JSON_OBJECT)
                                 .build())
                         .build());
+    }
+
+    private String getPromptTemplate() {
+        PromptContent prompt = promptRepository.findByType(PromptTypeEnum.BARTENDER.name());
+        if (prompt == null) {
+            return "";
+        }
+        return prompt.getSystemPrompt();
     }
 }

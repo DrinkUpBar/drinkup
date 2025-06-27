@@ -11,7 +11,6 @@ import cool.drinkup.drinkup.workflow.internal.service.chat.dto.ChatParams.ImageA
 import cool.drinkup.drinkup.workflow.internal.service.image.ImageService;
 import cool.drinkup.drinkup.workflow.internal.util.ContentTypeUtil;
 import io.micrometer.observation.annotation.Observed;
-import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,8 +51,6 @@ public class ChatBotService {
 
     private final ChatMemory chatMemory;
 
-    private String promptTemplate;
-
     public ChatBotService(
             @Qualifier("chatBotModel") ChatModel chatModel,
             @Qualifier("chatBotChatMemory") ChatMemory chatMemory,
@@ -67,15 +64,6 @@ public class ChatBotService {
         this.chatBotProperties = chatBotProperties;
         this.promptRepository = promptRepository;
         this.chatMemory = chatMemory;
-    }
-
-    @PostConstruct
-    public void init() {
-        PromptContent prompt = promptRepository.findByType(PromptTypeEnum.CHAT.name());
-        if (prompt == null) {
-            return;
-        }
-        this.promptTemplate = prompt.getSystemPrompt();
     }
 
     public record ChatBotResponse(String conversationId, String content) {}
@@ -163,7 +151,7 @@ public class ChatBotService {
     }
 
     private SystemMessage buildSystemMessage(ChatParams params) {
-        String systemPrompt = promptTemplate.replace("${userStock}", params.getUserStock());
+        String systemPrompt = getPromptTemplate().replace("${userStock}", params.getUserStock());
         return new SystemMessage(systemPrompt);
     }
 
@@ -231,5 +219,13 @@ public class ChatBotService {
         } else {
             return List.of(UserMessage.builder().text(userInput).build());
         }
+    }
+
+    private String getPromptTemplate() {
+        PromptContent prompt = promptRepository.findByType(PromptTypeEnum.CHAT.name());
+        if (prompt == null) {
+            return "";
+        }
+        return prompt.getSystemPrompt();
     }
 }
