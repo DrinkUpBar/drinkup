@@ -17,6 +17,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -69,5 +70,13 @@ public class WineService implements WineServiceFacade {
     @Override
     public WorkflowWineVo toWineVo(Wine wine) {
         return wineMapper.toWineVo(wine);
+    }
+
+    @Transactional
+    public Wine updateWineCardImage(Long wineId, String cardImage) {
+        Wine wine = wineRepository.findById(wineId).orElseThrow(() -> new RuntimeException("酒不存在，ID: " + wineId));
+
+        wine.setCardImage(cardImage);
+        return wineRepository.save(wine);
     }
 }

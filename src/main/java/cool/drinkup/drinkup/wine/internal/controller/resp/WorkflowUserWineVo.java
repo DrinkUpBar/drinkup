@@ -84,6 +84,9 @@ public class WorkflowUserWineVo implements cool.drinkup.drinkup.shared.dto.UserW
 
     private String image;
 
+    @JsonAlias("card_image")
+    private String cardImage;
+
     @JsonAlias("theme_story")
     private String themeStory;
 

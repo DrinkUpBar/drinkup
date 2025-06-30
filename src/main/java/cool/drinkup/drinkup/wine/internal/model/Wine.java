@@ -65,6 +65,7 @@ public class Wine implements cool.drinkup.drinkup.shared.dto.Wine {
     private String tagsOthers;
 
     private String image;
+    private String cardImage;
 
     @Column(name = "favorite_count", columnDefinition = "INT DEFAULT 0")
     private Integer favoriteCount = 0;

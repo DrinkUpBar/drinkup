@@ -74,4 +74,27 @@ public class UserWineService implements UserWineServiceFacade {
     public WorkflowUserWineVo toWorkflowUserWineVo(UserWine userWine) {
         return userWineMapper.toWorkflowUserWineVo(userWine);
     }
+
+    @Transactional
+    public UserWine updateUserWineCardImage(Long userWineId, String cardImage) {
+        Optional<AuthenticatedUserDTO> currentAuthenticatedUser =
+                authenticationServiceFacade.getCurrentAuthenticatedUser();
+        if (currentAuthenticatedUser.isEmpty()) {
+            throw new IllegalStateException("Expected authenticated user but got none");
+        }
+        AuthenticatedUserDTO authenticatedUserDTO = currentAuthenticatedUser.get();
+        Long userId = authenticatedUserDTO.userId();
+
+        UserWine userWine = userWineRepository
+                .findById(userWineId)
+                .orElseThrow(() -> new RuntimeException("用户酒不存在，ID: " + userWineId));
+
+        // 验证当前用户是否有权限修改这个用户酒
+        if (!userWine.getUserId().equals(userId)) {
+            throw new RuntimeException("无权限修改此用户酒");
+        }
+
+        userWine.setCardImage(cardImage);
+        return userWineRepository.save(userWine);
+    }
 }

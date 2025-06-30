@@ -3,6 +3,7 @@ package cool.drinkup.drinkup.wine.internal.controller;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cool.drinkup.drinkup.common.log.event.WineEvent;
 import cool.drinkup.drinkup.shared.spi.CommonResp;
+import cool.drinkup.drinkup.wine.internal.controller.req.UpdateCardImageRequest;
 import cool.drinkup.drinkup.wine.internal.controller.resp.RandomWineResp;
 import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowUserWineVo;
 import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowWineVo;
@@ -19,6 +20,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,8 +28,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -138,5 +142,48 @@ public class WineController {
         }
 
         return ResponseEntity.ok(CommonResp.success(mixedWineService.getRandomWine(type, count)));
+    }
+
+    @PatchMapping("/user-wine/{id}")
+    @Operation(summary = "更新用户酒单", description = "更新指定用户酒单的卡片图片")
+    @Parameter(name = "id", description = "用户酒ID", required = true)
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "成功更新卡片图片"),
+                @ApiResponse(responseCode = "400", description = "请求参数错误"),
+                @ApiResponse(responseCode = "404", description = "未找到指定的用户酒"),
+                @ApiResponse(responseCode = "403", description = "无权限修改此用户酒")
+            })
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CommonResp<WorkflowUserWineVo>> updateUserWineCardImage(
+            @PathVariable Long id, @Valid @RequestBody UpdateCardImageRequest request) {
+        try {
+            UserWine updatedUserWine = userWineService.updateUserWineCardImage(id, request.getCardImage());
+            WorkflowUserWineVo userWineVo = userWineMapper.toWorkflowUserWineVo(updatedUserWine);
+            return ResponseEntity.ok(CommonResp.success(userWineVo));
+        } catch (RuntimeException e) {
+            return ResponseEntity.ok(CommonResp.error(e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/{id}/card-image")
+    @Operation(summary = "更新酒单", description = "更新指定酒的卡片图片")
+    @Parameter(name = "id", description = "酒ID", required = true)
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "成功更新卡片图片"),
+                @ApiResponse(responseCode = "400", description = "请求参数错误"),
+                @ApiResponse(responseCode = "404", description = "未找到指定的酒")
+            })
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CommonResp<WorkflowWineVo>> updateWineCardImage(
+            @PathVariable Long id, @Valid @RequestBody UpdateCardImageRequest request) {
+        try {
+            Wine updatedWine = wineService.updateWineCardImage(id, request.getCardImage());
+            WorkflowWineVo wineVo = wineMapper.toWineVo(updatedWine);
+            return ResponseEntity.ok(CommonResp.success(wineVo));
+        } catch (RuntimeException e) {
+            return ResponseEntity.ok(CommonResp.error(e.getMessage()));
+        }
     }
 }

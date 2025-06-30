@@ -83,6 +83,9 @@ public class WorkflowWineVo implements cool.drinkup.drinkup.shared.dto.Wine {
 
     private String image;
 
+    @JsonAlias("card_image")
+    private String cardImage;
+
     @JsonAlias("create_date")
     private String createDate;
 
