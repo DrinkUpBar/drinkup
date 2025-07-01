@@ -123,7 +123,33 @@ public class ImageService implements ImageServiceFacade {
         }
     }
 
-    private byte[] downloadImageWithRetry(String imageUrl) {
+    public String storeImageBase64(String imageBase64) {
+        String imageId = UUID.randomUUID().toString();
+        String filename = imageId + ".jpg";
+        String key = prefix + filename;
+
+        try {
+            // Upload the file to S3
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .contentType("image/jpeg")
+                    .build();
+
+            byte[] imageBytes = java.util.Base64.getDecoder().decode(imageBase64);
+            s3Client.putObject(
+                    putObjectRequest,
+                    RequestBody.fromInputStream(new java.io.ByteArrayInputStream(imageBytes), imageBytes.length));
+
+            log.info("Stored image with ID: {} in S3 bucket: {} with key: {}", imageId, bucket, key);
+            return filename;
+        } catch (Exception e) {
+            log.error("Failed to store image from URL: {}", imageUrl, e);
+            throw new RuntimeException("Failed to store image: " + e.getMessage(), e);
+        }
+    }
+
+    public byte[] downloadImageWithRetry(String imageUrl) {
         int maxRetries = 3;
         int retryDelayMs = 1000; // 1 second initial delay
 

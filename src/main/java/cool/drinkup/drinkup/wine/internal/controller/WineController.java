@@ -166,7 +166,7 @@ public class WineController {
         }
     }
 
-    @PatchMapping("/{id}/card-image")
+    @PatchMapping("/{id}")
     @Operation(summary = "更新酒单", description = "更新指定酒的卡片图片")
     @Parameter(name = "id", description = "酒ID", required = true)
     @ApiResponses(

@@ -39,6 +39,7 @@ import cool.drinkup.drinkup.workflow.internal.service.bartender.theme.ThemeFacto
 import cool.drinkup.drinkup.workflow.internal.service.chat.ChatBotService;
 import cool.drinkup.drinkup.workflow.internal.service.chat.dto.ChatParams;
 import cool.drinkup.drinkup.workflow.internal.service.image.ImageGenerateService;
+import cool.drinkup.drinkup.workflow.internal.service.image.ImageProcessService;
 import cool.drinkup.drinkup.workflow.internal.service.image.ImageRecognitionService;
 import cool.drinkup.drinkup.workflow.internal.service.image.ImageService;
 import cool.drinkup.drinkup.workflow.internal.service.material.MaterialAnalysisService;
@@ -78,6 +79,7 @@ public class WorkflowService {
     private final MaterialAnalysisService materialAnalysisService;
     private final MaterialService materialService;
     private final StockDescriptionUtil stockDescriptionUtil;
+    private final ImageProcessService imageProcessService;
 
     public WorkflowWineResp processCocktailRequest(WorkflowUserReq userInput) {
         String userInputText = userInput.getUserInput();
@@ -154,11 +156,15 @@ public class WorkflowService {
             var chatBotResponse = objectMapper.readValue(json, WorkflowBartenderChatDto.class);
             String imageUrl = imageGenerateService.generateImage(chatBotResponse.getImagePrompt());
             String imageId = imageService.storeImage(imageUrl);
+            String processedImageUrl = imageProcessService.removeBackground(imageUrl);
+            String processedImageId = imageService.storeImage(processedImageUrl);
             chatBotResponse.setImage(imageId);
+            chatBotResponse.setProcessedImage(processedImageId);
             // Convert workflow response to wine response for saving
             UserWine saveUserWine = userWineServiceFacade.saveUserWine(chatBotResponse);
             chatBotResponse.setId(saveUserWine.getId());
             chatBotResponse.setImage(imageService.getImageUrl(imageId));
+            chatBotResponse.setProcessedImage(imageService.getImageUrl(processedImageId));
             return chatBotResponse;
         } catch (JsonProcessingException e) {
             log.error("Error parsing JSON: {}", e.getMessage());

@@ -72,6 +72,7 @@ public class UserWine implements cool.drinkup.drinkup.shared.dto.UserWine {
 
     private String image;
     private String cardImage;
+    private String processedImage;
     private String themeStory;
     private String themeFeatureTag;
 

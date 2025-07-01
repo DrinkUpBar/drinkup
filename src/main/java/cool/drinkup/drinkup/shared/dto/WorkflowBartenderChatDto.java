@@ -91,6 +91,9 @@ public class WorkflowBartenderChatDto {
     @JsonAlias("card_image")
     private String cardImage;
 
+    @JsonAlias("processed_image")
+    private String processedImage;
+
     @JsonAlias("image_prompt")
     private String imagePrompt;
 

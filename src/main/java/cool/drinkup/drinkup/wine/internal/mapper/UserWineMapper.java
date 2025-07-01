@@ -34,6 +34,7 @@ public abstract class UserWineMapper {
     @Mapping(source = "chatBotResponse.tagFlavor", target = "tagFlavor", qualifiedByName = "JsonStringListToString")
     @Mapping(source = "chatBotResponse.tagsOthers", target = "tagsOthers", qualifiedByName = "JsonStringListToString")
     @Mapping(source = "chatBotResponse.cardImage", target = "cardImage")
+    @Mapping(source = "chatBotResponse.processedImage", target = "processedImage")
     @Mapping(source = "userId", target = "userId")
     @Mapping(target = "createDate", ignore = true)
     @Mapping(target = "updateDate", ignore = true)
