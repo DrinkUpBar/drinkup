@@ -42,8 +42,6 @@ public class BartenderService {
 
     private final ChatModel recoverableChatModel;
 
-    private String promptTemplate;
-
     private final BartenderProperties bartenderProperties;
 
     private final PromptRepository promptRepository;
@@ -133,7 +131,7 @@ public class BartenderService {
             conversationId = UUID.randomUUID().toString();
             Map<String, String> substituterMap = bartenderParams.toSubstituterMap();
             StringSubstitutor substitutor = new StringSubstitutor(substituterMap);
-            String systemPrompt = substitutor.replace(promptTemplate);
+            String systemPrompt = substitutor.replace(getPromptTemplate());
             var systemMessage = new SystemMessage(systemPrompt);
             this.chatMemory.add(conversationId, systemMessage);
         }
