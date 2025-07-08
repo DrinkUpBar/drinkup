@@ -1,7 +1,7 @@
 package cool.drinkup.drinkup.infrastructure.internal.image.impl;
 
 import cool.drinkup.drinkup.infrastructure.internal.image.config.properties.ImgProxyProperties;
-import cool.drinkup.drinkup.infrastructure.spi.ImageCompressor;
+import cool.drinkup.drinkup.infrastructure.spi.image.ImageCompressor;
 import io.micrometer.observation.annotation.Observed;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;

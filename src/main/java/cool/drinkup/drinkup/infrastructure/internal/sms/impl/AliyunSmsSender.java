@@ -7,7 +7,7 @@ import com.aliyun.teaopenapi.models.Config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cool.drinkup.drinkup.infrastructure.internal.sms.config.AliyunSmsProperties;
-import cool.drinkup.drinkup.infrastructure.spi.SmsSender;
+import cool.drinkup.drinkup.infrastructure.spi.sms.SmsSender;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;

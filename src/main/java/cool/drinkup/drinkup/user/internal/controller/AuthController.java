@@ -2,7 +2,7 @@ package cool.drinkup.drinkup.user.internal.controller;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cool.drinkup.drinkup.common.log.event.UserEvent;
-import cool.drinkup.drinkup.infrastructure.spi.SmsSender;
+import cool.drinkup.drinkup.infrastructure.spi.sms.SmsSender;
 import cool.drinkup.drinkup.shared.spi.CommonResp;
 import cool.drinkup.drinkup.user.internal.controller.req.LoginRequest;
 import cool.drinkup.drinkup.user.internal.controller.req.PhoneNumberRequest;

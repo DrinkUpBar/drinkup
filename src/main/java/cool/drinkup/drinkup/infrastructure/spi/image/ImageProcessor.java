@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.infrastructure.spi;
+package cool.drinkup.drinkup.infrastructure.spi.image;
 
 public interface ImageProcessor {
 

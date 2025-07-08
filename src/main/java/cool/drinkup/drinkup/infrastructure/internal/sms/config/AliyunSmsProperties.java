@@ -2,7 +2,7 @@ package cool.drinkup.drinkup.infrastructure.internal.sms.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cool.drinkup.drinkup.infrastructure.internal.sms.impl.AliyunSmsSender;
-import cool.drinkup.drinkup.infrastructure.spi.SmsSender;
+import cool.drinkup.drinkup.infrastructure.spi.sms.SmsSender;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;

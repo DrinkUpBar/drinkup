@@ -1,6 +1,6 @@
 package cool.drinkup.drinkup.workflow.internal.service.image;
 
-import cool.drinkup.drinkup.infrastructure.spi.ImageProcessor;
+import cool.drinkup.drinkup.infrastructure.spi.image.ImageProcessor;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
 

@@ -1,6 +1,6 @@
 package cool.drinkup.drinkup.workflow.internal.service.image;
 
-import cool.drinkup.drinkup.infrastructure.spi.ImageCompressor;
+import cool.drinkup.drinkup.infrastructure.spi.image.ImageCompressor;
 import cool.drinkup.drinkup.shared.spi.ImageServiceFacade;
 import java.io.IOException;
 import java.net.URI;

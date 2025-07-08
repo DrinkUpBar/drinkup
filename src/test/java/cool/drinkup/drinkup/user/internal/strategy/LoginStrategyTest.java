@@ -7,7 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import cool.drinkup.drinkup.infrastructure.spi.SmsSender;
+import cool.drinkup.drinkup.infrastructure.spi.sms.SmsSender;
 import cool.drinkup.drinkup.user.internal.controller.req.LoginRequest;
 import cool.drinkup.drinkup.user.internal.mapper.UserMapper;
 import cool.drinkup.drinkup.user.internal.service.UserService;

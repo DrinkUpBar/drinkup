@@ -1,6 +1,6 @@
 package cool.drinkup.drinkup.workflow.internal.service.image;
 
-import cool.drinkup.drinkup.infrastructure.spi.ImageGenerator;
+import cool.drinkup.drinkup.infrastructure.spi.image.ImageGenerator;
 import cool.drinkup.drinkup.workflow.internal.exception.RetryException;
 import io.micrometer.observation.annotation.Observed;
 import lombok.extern.slf4j.Slf4j;

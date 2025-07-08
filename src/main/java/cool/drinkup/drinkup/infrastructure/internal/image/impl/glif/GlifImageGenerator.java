@@ -1,32 +1,39 @@
-package cool.drinkup.drinkup.infrastructure.internal.image.impl;
+package cool.drinkup.drinkup.infrastructure.internal.image.impl.glif;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cool.drinkup.drinkup.infrastructure.internal.image.config.properties.GlifProperties;
 import cool.drinkup.drinkup.infrastructure.internal.image.impl.dto.GlifImageRequest;
-import cool.drinkup.drinkup.infrastructure.spi.ImageGenerator;
-import lombok.RequiredArgsConstructor;
+import cool.drinkup.drinkup.infrastructure.spi.image.ImageGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 @Slf4j
-@RequiredArgsConstructor
 public class GlifImageGenerator implements ImageGenerator {
+
     private final RestClient restClient = RestClient.builder().build();
-    private final GlifProperties properties;
     private final ObjectMapper objectMapper;
+    private final GlifConfig config;
+
+    private GlifImageGenerator(GlifConfig config, ObjectMapper objectMapper) {
+        this.config = config;
+        this.objectMapper = objectMapper;
+    }
+
+    public static GlifImageGenerator create(GlifConfig config, ObjectMapper objectMapper) {
+        return new GlifImageGenerator(config, objectMapper);
+    }
 
     @Override
     public String generateImage(String prompt) {
         try {
-            GlifImageRequest.Input input = new GlifImageRequest.Input(properties.getWeights(), prompt);
-            GlifImageRequest glifImageRequest = new GlifImageRequest(properties.getGlifId(), input);
+            GlifImageRequest.Input input = new GlifImageRequest.Input(config.weights(), prompt);
+            GlifImageRequest glifImageRequest = new GlifImageRequest(config.glifId(), input);
             String response = restClient
                     .post()
-                    .uri(properties.getApiUrl())
-                    .header("Authorization", properties.getBearerToken())
+                    .uri(config.apiUrl())
+                    .header("Authorization", config.bearerToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(glifImageRequest)
                     .retrieve()

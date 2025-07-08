@@ -3,7 +3,7 @@ package cool.drinkup.drinkup.infrastructure.internal.image.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cool.drinkup.drinkup.infrastructure.internal.image.config.properties.ImageProcessorProperties;
-import cool.drinkup.drinkup.infrastructure.spi.ImageProcessor;
+import cool.drinkup.drinkup.infrastructure.spi.image.ImageProcessor;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
