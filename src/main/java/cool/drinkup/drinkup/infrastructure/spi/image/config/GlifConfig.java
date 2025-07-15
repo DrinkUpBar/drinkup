@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.infrastructure.internal.image.impl.glif;
+package cool.drinkup.drinkup.infrastructure.spi.image.config;
 
 public record GlifConfig(String apiUrl, String bearerToken, String glifId, String weights) {
     public static Builder builder() {

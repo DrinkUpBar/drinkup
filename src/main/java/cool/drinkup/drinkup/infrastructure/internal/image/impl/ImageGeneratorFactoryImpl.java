@@ -1,11 +1,12 @@
 package cool.drinkup.drinkup.infrastructure.internal.image.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cool.drinkup.drinkup.infrastructure.internal.image.impl.fal.FalConfig;
 import cool.drinkup.drinkup.infrastructure.internal.image.impl.fal.FalImageGeneratorFactory;
-import cool.drinkup.drinkup.infrastructure.internal.image.impl.glif.GlifConfig;
 import cool.drinkup.drinkup.infrastructure.internal.image.impl.glif.GlifImageGeneratorFactory;
 import cool.drinkup.drinkup.infrastructure.spi.image.ImageGenerator;
+import cool.drinkup.drinkup.infrastructure.spi.image.config.FalConfig;
+import cool.drinkup.drinkup.infrastructure.spi.image.config.GlifConfig;
+import cool.drinkup.drinkup.infrastructure.spi.image.config.ImageGeneratorConfig;
 import cool.drinkup.drinkup.infrastructure.spi.image.enums.ImageGeneratorTypeEnum;
 import cool.drinkup.drinkup.infrastructure.spi.image.factory.ImageGeneratorFactory;
 import jakarta.annotation.Resource;
@@ -27,13 +28,17 @@ public class ImageGeneratorFactoryImpl implements ImageGeneratorFactory {
     private GlifImageGeneratorFactory glifImageGeneratorFactory;
 
     @Override
-    public ImageGenerator getImageGenerator(ImageGeneratorTypeEnum type, String configJson) {
+    public ImageGenerator getImageGenerator(String configJson) {
         try {
-            switch (type) {
+            var config = objectMapper.readValue(configJson, ImageGeneratorConfig.class);
+            var type = config.getType();
+            var typeEnum = ImageGeneratorTypeEnum.fromString(type);
+            var configObj = config.getConfig();
+            switch (typeEnum) {
                 case FAL:
-                    return falImageGeneratorFactory.create(objectMapper.readValue(configJson, FalConfig.class));
+                    return falImageGeneratorFactory.create(objectMapper.convertValue(configObj, FalConfig.class));
                 case GLIF:
-                    return glifImageGeneratorFactory.create(objectMapper.readValue(configJson, GlifConfig.class));
+                    return glifImageGeneratorFactory.create(objectMapper.convertValue(configObj, GlifConfig.class));
                 default:
                     throw new IllegalArgumentException("Unsupported image generator type: " + type);
             }

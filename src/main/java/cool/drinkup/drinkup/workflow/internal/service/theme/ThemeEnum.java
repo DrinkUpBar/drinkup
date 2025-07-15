@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.workflow.internal.service.bartender.theme;
+package cool.drinkup.drinkup.workflow.internal.service.theme;
 
 import jakarta.annotation.Nullable;
 import java.security.SecureRandom;

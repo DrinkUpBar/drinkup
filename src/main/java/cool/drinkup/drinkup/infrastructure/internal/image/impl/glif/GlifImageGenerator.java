@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cool.drinkup.drinkup.infrastructure.internal.image.impl.dto.GlifImageRequest;
 import cool.drinkup.drinkup.infrastructure.spi.image.ImageGenerator;
+import cool.drinkup.drinkup.infrastructure.spi.image.config.GlifConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;

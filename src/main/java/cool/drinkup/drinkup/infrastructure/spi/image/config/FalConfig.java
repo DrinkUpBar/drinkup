@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.infrastructure.internal.image.impl.fal;
+package cool.drinkup.drinkup.infrastructure.spi.image.config;
 
 import cool.drinkup.drinkup.infrastructure.internal.image.config.properties.FalProperties;
 

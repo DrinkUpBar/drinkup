@@ -1,6 +1,7 @@
 package cool.drinkup.drinkup.infrastructure.internal.image.impl.fal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cool.drinkup.drinkup.infrastructure.spi.image.config.FalConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

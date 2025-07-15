@@ -10,6 +10,7 @@ import ai.fal.client.queue.QueueSubmitOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import cool.drinkup.drinkup.infrastructure.spi.image.ImageGenerator;
+import cool.drinkup.drinkup.infrastructure.spi.image.config.FalConfig;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
