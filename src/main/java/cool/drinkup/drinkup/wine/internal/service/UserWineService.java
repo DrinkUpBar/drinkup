@@ -97,4 +97,8 @@ public class UserWineService implements UserWineServiceFacade {
         userWine.setCardImage(cardImage);
         return userWineRepository.save(userWine);
     }
+
+    public @Nullable UserWine getUserWineById(Long userWineId) {
+        return userWineRepository.findById(userWineId).orElse(null);
+    }
 }
