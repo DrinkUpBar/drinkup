@@ -12,6 +12,7 @@ import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -98,6 +99,7 @@ public class UserWineService implements UserWineServiceFacade {
         return userWineRepository.save(userWine);
     }
 
+    @Cacheable(value = "userWine", key = "#userWineId", unless = "#result == null", cacheManager = "cacheManager")
     public @Nullable UserWine getUserWineById(Long userWineId) {
         return userWineRepository.findById(userWineId).orElse(null);
     }

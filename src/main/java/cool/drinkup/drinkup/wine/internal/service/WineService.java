@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class WineService implements WineServiceFacade {
     private final VectorStore vectorStore;
 
     @Override
+    @Cacheable(value = "wine", key = "#id", unless = "#result == null", cacheManager = "cacheManager")
     public @Nullable Wine getWineById(Long id) {
         return wineRepository.findById(id).orElse(null);
     }

@@ -7,10 +7,9 @@ import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -29,9 +28,6 @@ public class ApplePublicKeyService {
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
 
-    // 内存缓存，存储公钥
-    private final Map<String, PublicKey> publicKeyCache = new ConcurrentHashMap<>();
-
     /**
      * 根据密钥ID获取公钥
      *
@@ -39,14 +35,7 @@ public class ApplePublicKeyService {
      * @return 公钥，如果未找到则返回null
      */
     public PublicKey getPublicKey(String keyId) {
-        // 先从缓存中获取
-        PublicKey cachedKey = publicKeyCache.get(keyId);
-        if (cachedKey != null) {
-            log.debug("从缓存中获取到公钥，keyId: {}", keyId);
-            return cachedKey;
-        }
-
-        // 缓存中没有，从Apple服务器获取
+        log.debug("获取Apple公钥，keyId: {}", keyId);
         return fetchAndCachePublicKey(keyId);
     }
 
@@ -56,7 +45,11 @@ public class ApplePublicKeyService {
      * @param keyId 密钥ID
      * @return 公钥，如果未找到则返回null
      */
-    @Cacheable(value = "applePublicKeys", key = "#keyId", unless = "#result == null")
+    @Cacheable(
+            value = "applePublicKeys",
+            key = "#keyId",
+            unless = "#result == null",
+            cacheManager = "appleCacheManager")
     private PublicKey fetchAndCachePublicKey(String keyId) {
         try {
             log.info("从Apple服务器获取公钥，keyId: {}", keyId);
@@ -82,9 +75,7 @@ public class ApplePublicKeyService {
             // 构建RSA公钥
             PublicKey publicKey = buildRSAPublicKey(targetKey.getN(), targetKey.getE());
             if (publicKey != null) {
-                // 缓存公钥
-                publicKeyCache.put(keyId, publicKey);
-                log.info("成功获取并缓存Apple公钥，keyId: {}", keyId);
+                log.info("成功获取并缓存Apple公钥到Redis，keyId: {}", keyId);
             }
 
             return publicKey;
@@ -144,8 +135,18 @@ public class ApplePublicKeyService {
     /**
      * 清除公钥缓存
      */
+    @CacheEvict(value = "applePublicKeys", allEntries = true, cacheManager = "appleCacheManager")
     public void clearCache() {
-        publicKeyCache.clear();
-        log.info("已清除Apple公钥缓存");
+        log.info("已清除Apple公钥Redis缓存");
+    }
+
+    /**
+     * 清除特定密钥ID的缓存
+     *
+     * @param keyId 密钥ID
+     */
+    @CacheEvict(value = "applePublicKeys", key = "#keyId", cacheManager = "appleCacheManager")
+    public void clearCache(String keyId) {
+        log.info("已清除Apple公钥Redis缓存，keyId: {}", keyId);
     }
 }
