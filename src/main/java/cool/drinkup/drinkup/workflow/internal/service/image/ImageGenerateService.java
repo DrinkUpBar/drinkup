@@ -43,14 +43,15 @@ public class ImageGenerateService {
     @Observed(
             name = "image.generate",
             contextualName = "生成图片",
-            lowCardinalityKeyValues = {
-                "Tag", "image",
-                "Server", "glif"
-            })
-    public String generateImage(String prompt) {
+            lowCardinalityKeyValues = {"Tag", "image"})
+    public String generateImage(String prompt, ThemeEnum themeEnum) {
         try {
-            return glifImageGenerator.generateImage(prompt);
+            var theme = themeFactory.getTheme(themeEnum);
+            var themeImageConfig = theme.getThemeImageConfig();
+            var imageGenerator = imageGeneratorFactory.getImageGenerator(themeImageConfig);
+            return imageGenerator.generateImage(prompt);
         } catch (Exception e) {
+            log.error("[IMAGE] generate image failed, use glif to generate image", e);
             throw new RetryException(e.getMessage());
         }
     }
@@ -58,24 +59,9 @@ public class ImageGenerateService {
     @Observed(
             name = "image.generate",
             contextualName = "生成图片",
-            lowCardinalityKeyValues = {
-                "Tag", "image",
-                "Server", "fal"
-            })
-    @Recover
-    public String recover(RetryException e, String prompt) {
-        log.warn("glif generate image failed, use fal to generate image");
-        return falImageGenerator.generateImage(prompt);
-    }
-
-    @Observed(
-            name = "image.generate",
-            contextualName = "生成图片",
             lowCardinalityKeyValues = {"Tag", "image"})
-    public String generateImage(String prompt, ThemeEnum themeEnum) {
-        var theme = themeFactory.getTheme(themeEnum);
-        var themeImageConfig = theme.getThemeImageConfig();
-        var imageGenerator = imageGeneratorFactory.getImageGenerator(themeImageConfig);
-        return imageGenerator.generateImage(prompt);
+    @Recover
+    public String recover(RetryException e, String prompt, ThemeEnum themeEnum) {
+        return glifImageGenerator.generateImage(prompt);
     }
 }

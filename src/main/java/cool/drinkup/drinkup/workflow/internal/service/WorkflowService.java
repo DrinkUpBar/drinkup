@@ -122,10 +122,11 @@ public class WorkflowService {
     public WorkflowBartenderChatDto mixDrink(WorkflowBartenderChatReq bartenderInput) {
         var bartenderParam = buildBartenderParams(bartenderInput);
         var chatWithBartender = bartenderService.generateDrink(bartenderInput.getMessages(), bartenderParam);
+        var themeEnum = ThemeEnum.fromValue(bartenderInput.getTheme());
         var json = extractJson(chatWithBartender);
         try {
             var chatBotResponse = objectMapper.readValue(json, WorkflowBartenderChatDto.class);
-            String imageUrl = imageGenerateService.generateImage(chatBotResponse.getImagePrompt());
+            String imageUrl = imageGenerateService.generateImage(chatBotResponse.getImagePrompt(), themeEnum);
             String imageId = imageService.storeImage(imageUrl);
             chatBotResponse.setImage(imageId);
             // Convert workflow response to wine response for saving
@@ -151,10 +152,11 @@ public class WorkflowService {
     public WorkflowBartenderChatDto mixDrinkV2(WorkflowBartenderChatV2Req bartenderInput) {
         var bartenderParam = buildBartenderParams(bartenderInput);
         var chatWithBartender = bartenderService.generateDrinkV2(bartenderInput.getConversationId(), bartenderParam);
+        var themeEnum = ThemeEnum.fromValue(bartenderInput.getTheme());
         var json = extractJson(chatWithBartender);
         try {
             var chatBotResponse = objectMapper.readValue(json, WorkflowBartenderChatDto.class);
-            String imageUrl = imageGenerateService.generateImage(chatBotResponse.getImagePrompt());
+            String imageUrl = imageGenerateService.generateImage(chatBotResponse.getImagePrompt(), themeEnum);
             String imageId = imageService.storeImage(imageUrl);
             String processedImageUrl = imageProcessService.removeBackground(imageUrl);
             String processedImageId = imageService.storeImage(processedImageUrl);

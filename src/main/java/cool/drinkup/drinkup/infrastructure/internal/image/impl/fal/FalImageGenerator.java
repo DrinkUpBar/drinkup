@@ -36,7 +36,8 @@ public class FalImageGenerator implements ImageGenerator {
     public String generateImage(String prompt) {
         try {
             var input = config.imageProperties();
-            input.setPrompt(prompt);
+            var finalPrompt = config.triggerWord() + "," + prompt;
+            input.setPrompt(finalPrompt);
             var inputMap = objectMapper.convertValue(input, Map.class);
             var job = falClient.queue().submit(config.endpointId(), QueueSubmitOptions.withInput(inputMap));
             var requestId = job.getRequestId();
