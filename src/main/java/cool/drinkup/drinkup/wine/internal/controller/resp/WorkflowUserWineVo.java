@@ -108,6 +108,9 @@ public class WorkflowUserWineVo implements cool.drinkup.drinkup.shared.dto.UserW
         @JsonAlias("ingredient_name")
         private String ingredientName;
 
+        @JsonAlias("ingredient_name_en")
+        private String ingredientNameEn;
+
         @JsonAlias("ingredient_icon_type")
         private String ingredientIconType;
 

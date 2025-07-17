@@ -105,6 +105,9 @@ public class WorkflowBartenderChatDto {
         @JsonAlias("ingredient_name")
         private String ingredientName;
 
+        @JsonAlias("ingredient_name_en")
+        private String ingredientNameEn;
+
         @JsonAlias({"ingredient_icon_type", "ingredient_type"})
         private String ingredientIconType;
 
