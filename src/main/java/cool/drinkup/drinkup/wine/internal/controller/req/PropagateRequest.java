@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.wine.internal.controller;
+package cool.drinkup.drinkup.wine.internal.controller.req;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import cool.drinkup.drinkup.wine.internal.enums.PropagateTypeEnum;

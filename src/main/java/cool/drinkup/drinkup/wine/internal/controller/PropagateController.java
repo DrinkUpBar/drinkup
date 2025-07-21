@@ -2,6 +2,7 @@ package cool.drinkup.drinkup.wine.internal.controller;
 
 import cool.drinkup.drinkup.shared.spi.CommonResp;
 import cool.drinkup.drinkup.user.spi.AuthenticationServiceFacade;
+import cool.drinkup.drinkup.wine.internal.controller.req.PropagateRequest;
 import cool.drinkup.drinkup.wine.internal.controller.resp.PropagateResp;
 import cool.drinkup.drinkup.wine.internal.service.PropagateService;
 import io.swagger.v3.oas.annotations.Operation;

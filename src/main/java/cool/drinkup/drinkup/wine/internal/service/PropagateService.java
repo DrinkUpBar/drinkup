@@ -1,6 +1,6 @@
 package cool.drinkup.drinkup.wine.internal.service;
 
-import cool.drinkup.drinkup.wine.internal.controller.PropagateRequest;
+import cool.drinkup.drinkup.wine.internal.controller.req.PropagateRequest;
 import cool.drinkup.drinkup.wine.internal.enums.PropagateTypeEnum;
 import cool.drinkup.drinkup.wine.internal.model.ShareMapping;
 import cool.drinkup.drinkup.wine.internal.model.UserWine;
