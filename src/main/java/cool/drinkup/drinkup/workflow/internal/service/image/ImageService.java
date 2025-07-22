@@ -123,6 +123,7 @@ public class ImageService implements ImageServiceFacade {
         }
     }
 
+    @Override
     public String storeImageBase64(String imageBase64) {
         String imageId = UUID.randomUUID().toString();
         String filename = imageId + ".jpg";
@@ -216,6 +217,7 @@ public class ImageService implements ImageServiceFacade {
         }
     }
 
+    @Override
     public String getImageUrl(String imageId) {
         if (!StringUtils.hasText(imageId)) {
             return null;

@@ -1,5 +1,6 @@
 package cool.drinkup.drinkup.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +18,7 @@ public class CacheConfig {
 
     @Bean
     @Primary
-    public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+    public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
         RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(10))
                 // 禁止缓存null值
@@ -27,7 +28,7 @@ public class CacheConfig {
                         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 // 设置value序列化方式
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
-                        new GenericJackson2JsonRedisSerializer()))
+                        new GenericJackson2JsonRedisSerializer(objectMapper)))
                 // 使用单冒号作为分隔符的自定义前缀
                 .computePrefixWith(cacheName -> "drinkup:cache:" + cacheName + ":");
 

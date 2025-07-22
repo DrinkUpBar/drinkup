@@ -103,4 +103,8 @@ public class UserWineService implements UserWineServiceFacade {
     public @Nullable UserWine getUserWineById(Long userWineId) {
         return userWineRepository.findById(userWineId).orElse(null);
     }
+
+    public void save(UserWine userWine) {
+        userWineRepository.save(userWine);
+    }
 }

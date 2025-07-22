@@ -81,4 +81,8 @@ public class WineService implements WineServiceFacade {
         wine.setCardImage(cardImage);
         return wineRepository.save(wine);
     }
+
+    public void save(Wine wine) {
+        wineRepository.save(wine);
+    }
 }
