@@ -74,6 +74,7 @@ public abstract class UserWineMapper {
     @Mapping(source = "tagsOthers", target = "tagsOthers", qualifiedByName = "jsonToStringList")
     @Mapping(source = "image", target = "image", qualifiedByName = "imageToUrl")
     @Mapping(source = "cardImage", target = "cardImage", qualifiedByName = "imageToUrl")
+    @Mapping(source = "processedImage", target = "processedImage", qualifiedByName = "imageToUrl")
     @Mapping(source = "createDate", target = "createDate", qualifiedByName = "dateToString")
     @Mapping(source = "updateDate", target = "updateDate", qualifiedByName = "dateToString")
     @Mapping(target = "favoriteType", expression = "java(cool.drinkup.drinkup.favorite.spi.FavoriteType.USER_WINE)")
