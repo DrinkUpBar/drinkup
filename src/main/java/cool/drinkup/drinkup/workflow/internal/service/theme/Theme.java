@@ -5,4 +5,6 @@ public interface Theme {
     public String getName();
 
     public String getThemeImageConfig();
+
+    public String getImagePrompt();
 }

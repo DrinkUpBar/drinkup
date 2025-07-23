@@ -31,4 +31,12 @@ public class RandomTheme implements Theme {
                 .orElseThrow(() -> new RuntimeException("Theme not found"));
         return themeSettings.getImageConfig();
     }
+
+    @Override
+    public String getImagePrompt() {
+        var themeSettings = themeSettingsRepository
+                .findByType(this.type)
+                .orElseThrow(() -> new RuntimeException("Theme not found"));
+        return themeSettings.getImagePrompt();
+    }
 }

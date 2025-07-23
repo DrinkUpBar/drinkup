@@ -146,6 +146,7 @@ public class WorkflowService {
                 .userStock(buildStockDescription(bartenderInput.getAttachment()))
                 .userDemand(bartenderInput.getUserDemand())
                 .theme(theme.getName())
+                .imagePrompt(theme.getImagePrompt())
                 .build();
     }
 

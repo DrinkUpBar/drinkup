@@ -26,4 +26,6 @@ public class ThemeSettings {
     private String themeContent;
 
     private String imageConfig;
+
+    private String imagePrompt;
 }
