@@ -126,7 +126,10 @@ public class ImageService implements ImageServiceFacade {
     @Override
     public String storeImageBase64(String imageBase64) {
         String imageId = UUID.randomUUID().toString();
-        String filename = imageId + ".jpg";
+
+        // 检测图片格式并获取相应的扩展名和内容类型
+        ImageFormatInfo formatInfo = detectImageFormatFromBase64(imageBase64);
+        String filename = imageId + formatInfo.extension;
         String key = prefix + filename;
 
         try {
@@ -134,7 +137,7 @@ public class ImageService implements ImageServiceFacade {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucket)
                     .key(key)
-                    .contentType("image/jpeg")
+                    .contentType(formatInfo.contentType)
                     .build();
 
             byte[] imageBytes = java.util.Base64.getDecoder().decode(imageBase64);
@@ -145,8 +148,78 @@ public class ImageService implements ImageServiceFacade {
             log.info("Stored image with ID: {} in S3 bucket: {} with key: {}", imageId, bucket, key);
             return filename;
         } catch (Exception e) {
-            log.error("Failed to store image from URL: {}", imageUrl, e);
+            log.error("Failed to store image from base64 data", e);
             throw new RuntimeException("Failed to store image: " + e.getMessage(), e);
+        }
+    }
+
+    private ImageFormatInfo detectImageFormatFromBase64(String imageBase64) {
+        try {
+            byte[] imageBytes = java.util.Base64.getDecoder().decode(imageBase64);
+            return detectImageFormat(imageBytes);
+        } catch (Exception e) {
+            log.warn("Failed to detect image format from base64, using default JPEG format", e);
+            return new ImageFormatInfo(".jpg", "image/jpeg");
+        }
+    }
+
+    private ImageFormatInfo detectImageFormat(byte[] imageBytes) {
+        if (imageBytes.length < 8) {
+            return new ImageFormatInfo(".jpg", "image/jpeg");
+        }
+
+        // JPEG: FF D8 FF
+        if (imageBytes[0] == (byte) 0xFF && imageBytes[1] == (byte) 0xD8 && imageBytes[2] == (byte) 0xFF) {
+            return new ImageFormatInfo(".jpg", "image/jpeg");
+        }
+
+        // PNG: 89 50 4E 47 0D 0A 1A 0A
+        if (imageBytes[0] == (byte) 0x89
+                && imageBytes[1] == 0x50
+                && imageBytes[2] == 0x4E
+                && imageBytes[3] == 0x47
+                && imageBytes[4] == 0x0D
+                && imageBytes[5] == 0x0A
+                && imageBytes[6] == 0x1A
+                && imageBytes[7] == 0x0A) {
+            return new ImageFormatInfo(".png", "image/png");
+        }
+
+        // GIF: 47 49 46 38 (GIF8)
+        if (imageBytes[0] == 0x47 && imageBytes[1] == 0x49 && imageBytes[2] == 0x46 && imageBytes[3] == 0x38) {
+            return new ImageFormatInfo(".gif", "image/gif");
+        }
+
+        // WebP: 52 49 46 46 ... 57 45 42 50 (RIFF...WEBP)
+        if (imageBytes.length >= 12
+                && imageBytes[0] == 0x52
+                && imageBytes[1] == 0x49
+                && imageBytes[2] == 0x46
+                && imageBytes[3] == 0x46
+                && imageBytes[8] == 0x57
+                && imageBytes[9] == 0x45
+                && imageBytes[10] == 0x42
+                && imageBytes[11] == 0x50) {
+            return new ImageFormatInfo(".webp", "image/webp");
+        }
+
+        // BMP: 42 4D
+        if (imageBytes[0] == 0x42 && imageBytes[1] == 0x4D) {
+            return new ImageFormatInfo(".bmp", "image/bmp");
+        }
+
+        // 默认返回 JPEG
+        log.warn("Unknown image format, using default JPEG format");
+        return new ImageFormatInfo(".jpg", "image/jpeg");
+    }
+
+    private static class ImageFormatInfo {
+        final String extension;
+        final String contentType;
+
+        ImageFormatInfo(String extension, String contentType) {
+            this.extension = extension;
+            this.contentType = contentType;
         }
     }
 

@@ -20,13 +20,13 @@ public interface TastingRecordRepository extends JpaRepository<TastingRecord, Lo
     List<TastingRecord> findByUserIdAndStatusOrderByCreatedTimeDesc(Long userId, Integer status);
 
     /**
-     * 根据饮品ID和饮品类型查询品鉴记录，按创建时间降序排序
-     */
-    List<TastingRecord> findByBeverageIdAndBeverageTypeAndStatusOrderByCreatedTimeDesc(
-            Long beverageId, String beverageType, Integer status);
-
-    /**
      * 根据记录ID、用户ID和状态查询品鉴记录
      */
     Optional<TastingRecord> findByIdAndUserIdAndStatus(Long id, Long userId, Integer status);
+
+    /**
+     * 根据饮品ID和饮品类型查询品鉴记录，按创建时间降序排序
+     */
+    List<TastingRecord> findByBeverageIdAndBeverageTypeAndUserIdAndStatusOrderByCreatedTimeDesc(
+            Long beverageId, String beverageType, Long userId, Integer status);
 }

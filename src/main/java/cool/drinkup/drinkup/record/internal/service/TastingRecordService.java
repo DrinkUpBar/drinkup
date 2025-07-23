@@ -73,12 +73,12 @@ public class TastingRecordService {
      * 根据饮品ID和类型查询品鉴记录
      */
     @Transactional(readOnly = true)
-    public List<TastingRecord> getTastingRecordsByBeverage(Long beverageId, String beverageType) {
+    public List<TastingRecord> getTastingRecordsByBeverage(Long beverageId, String beverageType, Long userId) {
         log.info("查询品鉴记录: beverageId={}, beverageType={}", beverageId, beverageType);
 
         List<TastingRecord> records =
-                tastingRecordRepository.findByBeverageIdAndBeverageTypeAndStatusOrderByCreatedTimeDesc(
-                        beverageId, beverageType, 1);
+                tastingRecordRepository.findByBeverageIdAndBeverageTypeAndUserIdAndStatusOrderByCreatedTimeDesc(
+                        beverageId, beverageType, userId, 1);
 
         // 为每个记录加载图片
         for (TastingRecord record : records) {

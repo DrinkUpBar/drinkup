@@ -35,7 +35,7 @@ public class FalProperties {
         private String negativePrompt = "bad, messy, ugly, people";
 
         @JsonProperty("image_size")
-        private String imageSize = "landscape_4_3";
+        private Object imageSize = "landscape_4_3";
 
         @JsonProperty("num_inference_steps")
         private Integer numInferenceSteps = 25;

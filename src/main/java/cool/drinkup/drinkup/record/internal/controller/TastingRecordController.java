@@ -81,9 +81,13 @@ public class TastingRecordController {
             @Parameter(description = "饮品ID") @RequestParam Long beverageId,
             @Parameter(description = "饮品类型") @RequestParam String beverageType) {
 
+        AuthenticatedUserDTO currentUser = authenticationServiceFacade
+                .getCurrentAuthenticatedUser()
+                .orElseThrow(() -> new RuntimeException("用户未登录"));
+
         try {
             List<TastingRecord> tastingRecords =
-                    tastingRecordService.getTastingRecordsByBeverage(beverageId, beverageType);
+                    tastingRecordService.getTastingRecordsByBeverage(beverageId, beverageType, currentUser.userId());
             List<TastingRecordResp> response = tastingRecords.stream()
                     .map(tastingRecordMapper::toTastingRecordResp)
                     .collect(Collectors.toList());
