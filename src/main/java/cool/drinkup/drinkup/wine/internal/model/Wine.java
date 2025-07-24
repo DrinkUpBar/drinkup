@@ -1,8 +1,11 @@
 package cool.drinkup.drinkup.wine.internal.model;
 
 import cool.drinkup.drinkup.favorite.spi.FavoriteType;
+import cool.drinkup.drinkup.shared.enums.CardStyleEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -67,6 +70,9 @@ public class Wine implements cool.drinkup.drinkup.shared.dto.Wine {
     private String image;
     private String cardImage;
     private String processedImage;
+
+    @Enumerated(EnumType.STRING)
+    private CardStyleEnum cardStyle;
 
     @Column(name = "favorite_count", columnDefinition = "INT DEFAULT 0")
     private Integer favoriteCount = 0;

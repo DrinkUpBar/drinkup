@@ -1,4 +1,4 @@
-package cool.drinkup.drinkup.workflow.internal.service.theme;
+package cool.drinkup.drinkup.shared.enums;
 
 import jakarta.annotation.Nullable;
 import java.security.SecureRandom;

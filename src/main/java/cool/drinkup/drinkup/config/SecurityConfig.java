@@ -52,6 +52,9 @@ public class SecurityConfig {
                         // 酒卡分享链接
                         .requestMatchers(HttpMethod.GET, "/api/propagate/**")
                         .permitAll()
+                        // Apple App Site Association
+                        .requestMatchers("/.well-known/apple-app-site-association")
+                        .permitAll()
                         .anyRequest()
                         .authenticated())
                 .logout(logout -> logout.logoutUrl("/api/auth/logout")

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cool.drinkup.drinkup.shared.dto.UserWine;
 import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
+import cool.drinkup.drinkup.shared.enums.ThemeEnum;
 import cool.drinkup.drinkup.wine.spi.UserWineServiceFacade;
 import cool.drinkup.drinkup.wine.spi.WineServiceFacade;
 import cool.drinkup.drinkup.wine.spi.WorkflowWineResp;
@@ -44,7 +45,6 @@ import cool.drinkup.drinkup.workflow.internal.service.material.MaterialAnalysisS
 import cool.drinkup.drinkup.workflow.internal.service.material.MaterialService;
 import cool.drinkup.drinkup.workflow.internal.service.stock.BarStockService;
 import cool.drinkup.drinkup.workflow.internal.service.theme.Theme;
-import cool.drinkup.drinkup.workflow.internal.service.theme.ThemeEnum;
 import cool.drinkup.drinkup.workflow.internal.service.theme.ThemeFactory;
 import cool.drinkup.drinkup.workflow.internal.service.translate.TranslateService;
 import cool.drinkup.drinkup.workflow.internal.util.StockDescriptionUtil;
@@ -118,6 +118,30 @@ public class WorkflowService {
         return chatWithUser;
     }
 
+    /**
+     * 解析AI返回的JSON，支持数组和对象两种格式
+     * @param json JSON字符串
+     * @param clazz 目标类型
+     * @return 解析后的对象，如果是数组则返回第一个元素
+     * @throws JsonProcessingException JSON解析异常
+     */
+    private <T> T parseAiResponse(String json, Class<T> clazz) throws JsonProcessingException {
+        // 检查返回的JSON是否为数组格式
+        if (json.trim().startsWith("[")) {
+            // 如果是数组，取第一个元素
+            T[] responseArray =
+                    objectMapper.readValue(json, objectMapper.getTypeFactory().constructArrayType(clazz));
+            if (responseArray.length == 0) {
+                log.error("AI returned empty array");
+                return null;
+            }
+            return responseArray[0];
+        } else {
+            // 如果是单个对象，直接解析
+            return objectMapper.readValue(json, clazz);
+        }
+    }
+
     @Deprecated
     public WorkflowBartenderChatDto mixDrink(WorkflowBartenderChatReq bartenderInput) {
         var bartenderParam = buildBartenderParams(bartenderInput);
@@ -125,7 +149,10 @@ public class WorkflowService {
         var themeEnum = ThemeEnum.fromValue(bartenderInput.getTheme());
         var json = extractJson(chatWithBartender);
         try {
-            var chatBotResponse = objectMapper.readValue(json, WorkflowBartenderChatDto.class);
+            var chatBotResponse = parseAiResponse(json, WorkflowBartenderChatDto.class);
+            if (chatBotResponse == null) {
+                return null;
+            }
             String imageUrl = imageGenerateService.generateImage(chatBotResponse.getImagePrompt(), themeEnum);
             String imageId = imageService.storeImage(imageUrl);
             chatBotResponse.setImage(imageId);
@@ -154,15 +181,21 @@ public class WorkflowService {
         var bartenderParam = buildBartenderParams(bartenderInput);
         var chatWithBartender = bartenderService.generateDrinkV2(bartenderInput.getConversationId(), bartenderParam);
         var themeEnum = ThemeEnum.fromValue(bartenderInput.getTheme());
+        Theme theme = themeFactory.getTheme(themeEnum);
         var json = extractJson(chatWithBartender);
         try {
-            var chatBotResponse = objectMapper.readValue(json, WorkflowBartenderChatDto.class);
+            var chatBotResponse = parseAiResponse(json, WorkflowBartenderChatDto.class);
+            if (chatBotResponse == null) {
+                return null;
+            }
             String imageUrl = imageGenerateService.generateImage(chatBotResponse.getImagePrompt(), themeEnum);
             String imageId = imageService.storeImage(imageUrl);
             String processedImageUrl = imageProcessService.removeBackground(imageUrl);
             String processedImageId = imageService.storeImage(processedImageUrl);
             chatBotResponse.setImage(imageId);
             chatBotResponse.setProcessedImage(processedImageId);
+            chatBotResponse.setTheme(themeEnum);
+            chatBotResponse.setCardStyle(theme.getCardStyle());
             // Convert workflow response to wine response for saving
             UserWine saveUserWine = userWineServiceFacade.saveUserWine(chatBotResponse);
             chatBotResponse.setId(saveUserWine.getId());

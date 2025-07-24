@@ -158,7 +158,7 @@ public class WineController {
     public ResponseEntity<CommonResp<WorkflowUserWineVo>> updateUserWineCardImage(
             @PathVariable Long id, @Valid @RequestBody UpdateCardImageRequest request) {
         try {
-            UserWine updatedUserWine = userWineService.updateUserWineCardImage(id, request.getCardImage());
+            UserWine updatedUserWine = userWineService.updateUserWine(id, request);
             WorkflowUserWineVo userWineVo = userWineMapper.toWorkflowUserWineVo(updatedUserWine);
             return ResponseEntity.ok(CommonResp.success(userWineVo));
         } catch (RuntimeException e) {

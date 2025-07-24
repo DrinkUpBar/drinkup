@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import cool.drinkup.drinkup.shared.enums.CardStyleEnum;
+import cool.drinkup.drinkup.shared.enums.ThemeEnum;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,6 +87,10 @@ public class WorkflowBartenderChatDto {
 
     @JsonAlias("theme_story")
     private String themeStory;
+
+    private ThemeEnum theme;
+
+    private CardStyleEnum cardStyle;
 
     private String image;
 

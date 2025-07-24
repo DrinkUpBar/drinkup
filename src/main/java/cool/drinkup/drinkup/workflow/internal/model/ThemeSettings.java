@@ -1,6 +1,6 @@
 package cool.drinkup.drinkup.workflow.internal.model;
 
-import cool.drinkup.drinkup.workflow.internal.service.theme.ThemeEnum;
+import cool.drinkup.drinkup.shared.enums.ThemeEnum;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

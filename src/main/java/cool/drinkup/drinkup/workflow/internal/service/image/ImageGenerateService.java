@@ -2,8 +2,8 @@ package cool.drinkup.drinkup.workflow.internal.service.image;
 
 import cool.drinkup.drinkup.infrastructure.spi.image.ImageGenerator;
 import cool.drinkup.drinkup.infrastructure.spi.image.factory.ImageGeneratorFactory;
+import cool.drinkup.drinkup.shared.enums.ThemeEnum;
 import cool.drinkup.drinkup.workflow.internal.exception.RetryException;
-import cool.drinkup.drinkup.workflow.internal.service.theme.ThemeEnum;
 import cool.drinkup.drinkup.workflow.internal.service.theme.ThemeFactory;
 import io.micrometer.observation.annotation.Observed;
 import lombok.extern.slf4j.Slf4j;

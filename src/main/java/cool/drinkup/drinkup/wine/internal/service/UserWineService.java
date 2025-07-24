@@ -3,6 +3,7 @@ package cool.drinkup.drinkup.wine.internal.service;
 import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
 import cool.drinkup.drinkup.user.spi.AuthenticatedUserDTO;
 import cool.drinkup.drinkup.user.spi.AuthenticationServiceFacade;
+import cool.drinkup.drinkup.wine.internal.controller.req.UpdateCardImageRequest;
 import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowUserWineVo;
 import cool.drinkup.drinkup.wine.internal.mapper.UserWineMapper;
 import cool.drinkup.drinkup.wine.internal.model.UserWine;
@@ -77,7 +78,7 @@ public class UserWineService implements UserWineServiceFacade {
     }
 
     @Transactional
-    public UserWine updateUserWineCardImage(Long userWineId, String cardImage) {
+    public UserWine updateUserWine(Long userWineId, UpdateCardImageRequest request) {
         Optional<AuthenticatedUserDTO> currentAuthenticatedUser =
                 authenticationServiceFacade.getCurrentAuthenticatedUser();
         if (currentAuthenticatedUser.isEmpty()) {
@@ -95,7 +96,15 @@ public class UserWineService implements UserWineServiceFacade {
             throw new RuntimeException("无权限修改此用户酒");
         }
 
-        userWine.setCardImage(cardImage);
+        if (request.getCardImage() != null) {
+            userWine.setCardImage(request.getCardImage());
+        }
+        if (request.getTheme() != null) {
+            userWine.setTheme(request.getTheme());
+        }
+        if (request.getCardStyle() != null) {
+            userWine.setCardStyle(request.getCardStyle());
+        }
         return userWineRepository.save(userWine);
     }
 

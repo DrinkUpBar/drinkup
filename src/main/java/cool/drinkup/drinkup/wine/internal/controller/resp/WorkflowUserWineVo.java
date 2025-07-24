@@ -87,6 +87,9 @@ public class WorkflowUserWineVo implements cool.drinkup.drinkup.shared.dto.UserW
     @JsonAlias("card_image")
     private String cardImage;
 
+    @JsonAlias("card_style")
+    private String cardStyle;
+
     @JsonAlias("processed_image")
     private String processedImage;
 
@@ -95,6 +98,8 @@ public class WorkflowUserWineVo implements cool.drinkup.drinkup.shared.dto.UserW
 
     @JsonAlias("theme_feature_tag")
     private String themeFeatureTag;
+
+    private String theme;
 
     @JsonAlias("create_date")
     private String createDate;

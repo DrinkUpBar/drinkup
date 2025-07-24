@@ -1,8 +1,12 @@
 package cool.drinkup.drinkup.wine.internal.model;
 
 import cool.drinkup.drinkup.favorite.spi.FavoriteType;
+import cool.drinkup.drinkup.shared.enums.CardStyleEnum;
+import cool.drinkup.drinkup.shared.enums.ThemeEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -75,6 +79,12 @@ public class UserWine implements cool.drinkup.drinkup.shared.dto.UserWine {
     private String processedImage;
     private String themeStory;
     private String themeFeatureTag;
+
+    @Enumerated(EnumType.STRING)
+    private ThemeEnum theme;
+
+    @Enumerated(EnumType.STRING)
+    private CardStyleEnum cardStyle;
 
     @CreationTimestamp
     @Column(name = "create_date", updatable = false, columnDefinition = "DATETIME")
