@@ -1,6 +1,6 @@
 package cool.drinkup.drinkup.infrastructure.spi.image.config;
 
-public record GlifConfig(String apiUrl, String bearerToken, String glifId, String weights) {
+public record GlifConfig(String apiUrl, String bearerToken, String glifId, String weights, String triggerWord) {
     public static Builder builder() {
         return new Builder();
     }
@@ -11,6 +11,7 @@ public record GlifConfig(String apiUrl, String bearerToken, String glifId, Strin
         private String glifId;
         private String weights =
                 "https://huggingface.co/alvdansen/softpasty-flux-dev/resolve/main/araminta_k_softpasty_diffusion_flux.safetensors";
+        private String triggerWord = "araminta_illus,illustration style";
 
         public Builder apiUrl(String apiUrl) {
             this.apiUrl = apiUrl;
@@ -32,11 +33,16 @@ public record GlifConfig(String apiUrl, String bearerToken, String glifId, Strin
             return this;
         }
 
+        public Builder triggerWord(String triggerWord) {
+            this.triggerWord = triggerWord;
+            return this;
+        }
+
         public GlifConfig build() {
             if (bearerToken == null || glifId == null) {
                 throw new IllegalArgumentException("bearerToken and glifId are required");
             }
-            return new GlifConfig(apiUrl, bearerToken, glifId, weights);
+            return new GlifConfig(apiUrl, bearerToken, glifId, weights, triggerWord);
         }
     }
 }

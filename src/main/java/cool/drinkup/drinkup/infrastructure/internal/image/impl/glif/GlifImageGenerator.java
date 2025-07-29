@@ -29,7 +29,8 @@ public class GlifImageGenerator implements ImageGenerator {
     @Override
     public String generateImage(String prompt) {
         try {
-            GlifImageRequest.Input input = new GlifImageRequest.Input(config.weights(), prompt);
+            String finalPrompt = prompt + ", " + config.triggerWord();
+            GlifImageRequest.Input input = new GlifImageRequest.Input(config.weights(), finalPrompt);
             GlifImageRequest glifImageRequest = new GlifImageRequest(config.glifId(), input);
             String response = restClient
                     .post()
