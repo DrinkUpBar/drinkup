@@ -19,6 +19,11 @@ public class MovieTheme implements Theme {
 
     @Override
     public String getName() {
+        return this.type.name();
+    }
+
+    @Override
+    public String getThemeContent() {
         var themeSettings = themeSettingsRepository
                 .findByType(this.type)
                 .orElseThrow(() -> new RuntimeException("Theme not found"));

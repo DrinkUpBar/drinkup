@@ -180,7 +180,7 @@ public class WorkflowService {
     public WorkflowBartenderChatDto mixDrinkV2(WorkflowBartenderChatV2Req bartenderInput) {
         var bartenderParam = buildBartenderParams(bartenderInput);
         var chatWithBartender = bartenderService.generateDrinkV2(bartenderInput.getConversationId(), bartenderParam);
-        var themeEnum = ThemeEnum.fromValue(bartenderInput.getTheme());
+        var themeEnum = ThemeEnum.fromValue(bartenderParam.getTheme());
         Theme theme = themeFactory.getTheme(themeEnum);
         var json = extractJson(chatWithBartender);
         try {

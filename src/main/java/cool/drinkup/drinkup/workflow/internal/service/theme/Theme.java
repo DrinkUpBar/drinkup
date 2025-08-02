@@ -6,6 +6,8 @@ public interface Theme {
 
     public String getName();
 
+    public String getThemeContent();
+
     public String getThemeImageConfig();
 
     public String getImagePrompt();
