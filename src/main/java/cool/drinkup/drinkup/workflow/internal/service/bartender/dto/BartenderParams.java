@@ -16,6 +16,7 @@ public class BartenderParams {
     private String userStock;
     private String userDemand;
     private String theme;
+    private String themeEnum;
     private String imagePrompt;
 
     public Map<String, String> toSubstituterMap() {
