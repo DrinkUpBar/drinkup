@@ -77,7 +77,6 @@ public class WineController {
                 @ApiResponse(responseCode = "200", description = "成功获取酒列表"),
                 @ApiResponse(responseCode = "400", description = "请求参数错误")
             })
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CommonResp<Page<WorkflowWineVo>>> getWinesByTag(
             @RequestParam(required = false) String tag,
             @RequestParam(required = false) String iba,
@@ -133,7 +132,6 @@ public class WineController {
                 @ApiResponse(responseCode = "400", description = "请求参数错误"),
                 @ApiResponse(responseCode = "404", description = "未找到符合条件的酒")
             })
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CommonResp<RandomWineResp>> getRandomWine(
             @RequestParam String type, @RequestParam(defaultValue = "1") int count) {
         // 验证数量参数

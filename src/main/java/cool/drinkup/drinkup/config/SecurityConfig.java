@@ -55,6 +55,11 @@ public class SecurityConfig {
                         // Apple App Site Association
                         .requestMatchers("/.well-known/apple-app-site-association")
                         .permitAll()
+                        // 酒单相关公开接口
+                        .requestMatchers(HttpMethod.GET, "/api/wines/by-tag")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/wines/random")
+                        .permitAll()
                         .anyRequest()
                         .authenticated())
                 .logout(logout -> logout.logoutUrl("/api/auth/logout")
