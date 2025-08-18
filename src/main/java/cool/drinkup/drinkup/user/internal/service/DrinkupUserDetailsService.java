@@ -42,7 +42,19 @@ public class DrinkupUserDetailsService implements UserDetailsService, Authentica
     @Override
     public Optional<AuthenticatedUserDTO> getCurrentAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        // 检查认证是否存在以及用户是否已认证
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return Optional.empty();
+        }
+
+        // 检查 principal 是否为 UserDetails 类型（避免匿名用户的 String 类型）
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof UserDetails)) {
+            return Optional.empty();
+        }
+
+        UserDetails userDetails = (UserDetails) principal;
         if (!(userDetails instanceof DrinkupUserDetails drinkupUserDetails)) {
             return Optional.empty();
         }

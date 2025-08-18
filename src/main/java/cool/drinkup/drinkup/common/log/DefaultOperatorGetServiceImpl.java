@@ -23,6 +23,9 @@ public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
             operator.setOperatorId(String.valueOf(authenticatedUserDTO.userId()));
             return operator;
         }
-        return null;
+        // 对于匿名用户，设置默认的操作者ID
+        Operator operator = new Operator();
+        operator.setOperatorId("anonymous");
+        return operator;
     }
 }
