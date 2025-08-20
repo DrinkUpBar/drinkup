@@ -1,6 +1,8 @@
 package cool.drinkup.drinkup.workflow.internal.service.image;
 
 import cool.drinkup.drinkup.infrastructure.spi.image.ImageCompressor;
+import cool.drinkup.drinkup.infrastructure.spi.image.ImageMetadataProcessor;
+import cool.drinkup.drinkup.infrastructure.spi.image.dto.ImageMetadata;
 import cool.drinkup.drinkup.shared.spi.ImageServiceFacade;
 import java.io.IOException;
 import java.net.URI;
@@ -24,6 +26,7 @@ public class ImageService implements ImageServiceFacade {
 
     private final S3Client s3Client;
     private final ImageCompressor imageCompressor;
+    private final ImageMetadataProcessor imageMetadataProcessor;
 
     private final RestClient restClient;
     private static String prefix = "images/";
@@ -37,9 +40,11 @@ public class ImageService implements ImageServiceFacade {
     @Value("${drinkup.image.save.s3.bucket:object-bucket}")
     private String bucket;
 
-    public ImageService(S3Client s3Client, ImageCompressor imageCompressor) {
+    public ImageService(
+            S3Client s3Client, ImageCompressor imageCompressor, ImageMetadataProcessor imageMetadataProcessor) {
         this.s3Client = s3Client;
         this.imageCompressor = imageCompressor;
+        this.imageMetadataProcessor = imageMetadataProcessor;
 
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(30000); // 30 seconds
@@ -104,6 +109,16 @@ public class ImageService implements ImageServiceFacade {
         String key = prefix + filename;
 
         try {
+            // 添加默认的DrinkUp元数据
+            ImageMetadata metadata = ImageMetadata.createDrinkUpMetadata(
+                    "Relaxed",
+                    "Grapefruit, Herbal",
+                    "AI-generated cocktail card for mood: Calm Summer Night",
+                    "AI, cocktail, qwen, emotional-drink, grapefruit");
+
+            // 为图片添加元数据
+            byte[] processedImageBytes = imageMetadataProcessor.addMetadata(imageBytes, metadata);
+
             // Upload the file to S3
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucket)
@@ -113,9 +128,14 @@ public class ImageService implements ImageServiceFacade {
 
             s3Client.putObject(
                     putObjectRequest,
-                    RequestBody.fromInputStream(new java.io.ByteArrayInputStream(imageBytes), imageBytes.length));
+                    RequestBody.fromInputStream(
+                            new java.io.ByteArrayInputStream(processedImageBytes), processedImageBytes.length));
 
-            log.info("Stored image with ID: {} in S3 bucket: {} with key: {}", imageId, bucket, key);
+            log.info(
+                    "Stored image with ID: {} in S3 bucket: {} with key: {}, with metadata added",
+                    imageId,
+                    bucket,
+                    key);
             return filename;
         } catch (Exception e) {
             log.error("Failed to store image from URL: {}", imageUrl, e);
@@ -133,6 +153,19 @@ public class ImageService implements ImageServiceFacade {
         String key = prefix + filename;
 
         try {
+            // 解码图片数据
+            byte[] imageBytes = java.util.Base64.getDecoder().decode(imageBase64);
+
+            // 添加默认的DrinkUp元数据
+            ImageMetadata metadata = ImageMetadata.createDrinkUpMetadata(
+                    "Relaxed",
+                    "Grapefruit, Herbal",
+                    "AI-generated cocktail card for mood: Calm Summer Night",
+                    "AI, cocktail, qwen, emotional-drink, grapefruit");
+
+            // 为图片添加元数据
+            byte[] processedImageBytes = imageMetadataProcessor.addMetadata(imageBytes, metadata);
+
             // Upload the file to S3
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucket)
@@ -140,12 +173,16 @@ public class ImageService implements ImageServiceFacade {
                     .contentType(formatInfo.contentType)
                     .build();
 
-            byte[] imageBytes = java.util.Base64.getDecoder().decode(imageBase64);
             s3Client.putObject(
                     putObjectRequest,
-                    RequestBody.fromInputStream(new java.io.ByteArrayInputStream(imageBytes), imageBytes.length));
+                    RequestBody.fromInputStream(
+                            new java.io.ByteArrayInputStream(processedImageBytes), processedImageBytes.length));
 
-            log.info("Stored image with ID: {} in S3 bucket: {} with key: {}", imageId, bucket, key);
+            log.info(
+                    "Stored image with ID: {} in S3 bucket: {} with key: {}, with metadata added",
+                    imageId,
+                    bucket,
+                    key);
             return filename;
         } catch (Exception e) {
             log.error("Failed to store image from base64 data", e);
