@@ -17,15 +17,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 用户收藏实体
+ * 用户已调制实体
  */
 @Entity
 @Table(
-        name = "user_favorite",
+        name = "user_made",
         uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "object_type", "object_id"})})
 @Getter
 @Setter
-public class UserFavorite {
+public class UserMade {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,18 +40,15 @@ public class UserFavorite {
     @Column(name = "object_id", nullable = false)
     private Long objectId;
 
-    @Column(name = "favorite_time", nullable = false, updatable = false, columnDefinition = "DATETIME")
-    private ZonedDateTime favoriteTime = ZonedDateTime.now(ZoneOffset.UTC);
-
-    @Column(name = "note")
-    private String note;
+    @Column(name = "made_time", nullable = false, updatable = false, columnDefinition = "DATETIME")
+    private ZonedDateTime madeTime = ZonedDateTime.now(ZoneOffset.UTC);
 
     // 瞬态字段，用于存储关联对象
     @Transient
-    private Object favoriteObject;
+    private Object madeObject;
 
     // 辅助方法
-    public <T> T getFavoriteObject(Class<T> clazz) {
-        return clazz.cast(favoriteObject);
+    public <T> T getMadeObject(Class<T> clazz) {
+        return clazz.cast(madeObject);
     }
 }

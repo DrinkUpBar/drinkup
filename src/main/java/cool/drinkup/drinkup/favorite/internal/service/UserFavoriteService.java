@@ -5,7 +5,7 @@ import cool.drinkup.drinkup.favorite.internal.dto.UserFavoriteDTO;
 import cool.drinkup.drinkup.favorite.internal.entity.UserFavorite;
 import cool.drinkup.drinkup.favorite.internal.repository.UserFavoriteRepository;
 import cool.drinkup.drinkup.favorite.spi.FavoriteObjectLoader;
-import cool.drinkup.drinkup.favorite.spi.FavoriteType;
+import cool.drinkup.drinkup.favorite.spi.ObjectType;
 import cool.drinkup.drinkup.shared.dto.UserWine;
 import cool.drinkup.drinkup.shared.dto.Wine;
 import java.time.ZoneOffset;
@@ -30,7 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserFavoriteService {
 
     private final UserFavoriteRepository favoriteRepository;
-    private final Map<FavoriteType, FavoriteObjectLoader<?>> loaderMap;
+    private final Map<ObjectType, FavoriteObjectLoader<?>> loaderMap;
 
     public UserFavoriteService(UserFavoriteRepository favoriteRepository, List<FavoriteObjectLoader<?>> loaders) {
         this.favoriteRepository = favoriteRepository;
@@ -42,7 +42,7 @@ public class UserFavoriteService {
 
     // 添加收藏
     @Transactional
-    public UserFavorite addFavorite(Long userId, FavoriteType favoriteType, Long objectId, String note) {
+    public UserFavorite addFavorite(Long userId, ObjectType favoriteType, Long objectId, String note) {
         // 1. 验证对象是否存在
         FavoriteObjectLoader<?> loader = loaderMap.get(favoriteType);
         if (loader == null || !loader.validateObject(objectId)) {
@@ -72,7 +72,7 @@ public class UserFavoriteService {
 
     // 取消收藏
     @Transactional
-    public void removeFavorite(Long userId, FavoriteType objectType, Long objectId) {
+    public void removeFavorite(Long userId, ObjectType objectType, Long objectId) {
         favoriteRepository.deleteByUserIdAndObjectTypeAndObjectId(userId, objectType, objectId);
 
         FavoriteObjectLoader<?> loader = loaderMap.get(objectType);
@@ -82,20 +82,20 @@ public class UserFavoriteService {
     }
 
     // 获取用户收藏列表（带详情）
-    public Page<UserFavoriteDTO> getUserFavoritesWithDetails(Long userId, FavoriteType objectType, Pageable pageable) {
+    public Page<UserFavoriteDTO> getUserFavoritesWithDetails(Long userId, ObjectType objectType, Pageable pageable) {
         // 1. 查询收藏记录
         Page<UserFavorite> favoritePage = (objectType == null)
                 ? favoriteRepository.findByUserIdOrderByFavoriteTimeDesc(userId, pageable)
                 : favoriteRepository.findByUserIdAndObjectTypeOrderByFavoriteTimeDesc(userId, objectType, pageable);
 
         // 2. 按类型分组
-        Map<FavoriteType, List<UserFavorite>> groupedFavorites =
+        Map<ObjectType, List<UserFavorite>> groupedFavorites =
                 favoritePage.getContent().stream().collect(Collectors.groupingBy(UserFavorite::getObjectType));
 
         // 3. 批量加载关联对象
         List<UserFavoriteDTO> dtoList = new ArrayList<>();
-        for (Map.Entry<FavoriteType, List<UserFavorite>> entry : groupedFavorites.entrySet()) {
-            FavoriteType type = entry.getKey();
+        for (Map.Entry<ObjectType, List<UserFavorite>> entry : groupedFavorites.entrySet()) {
+            ObjectType type = entry.getKey();
             List<UserFavorite> favorites = entry.getValue();
             List<Long> objectIds =
                     favorites.stream().map(UserFavorite::getObjectId).collect(Collectors.toList());
@@ -124,12 +124,12 @@ public class UserFavoriteService {
     }
 
     // 检查是否已收藏
-    public boolean isFavorited(Long userId, FavoriteType objectType, Long objectId) {
+    public boolean isFavorited(Long userId, ObjectType objectType, Long objectId) {
         return favoriteRepository.existsByUserIdAndObjectTypeAndObjectId(userId, objectType, objectId);
     }
 
     // 批量检查收藏状态
-    public Map<Long, Boolean> checkFavoriteStatus(Long userId, FavoriteType objectType, List<Long> objectIds) {
+    public Map<Long, Boolean> checkFavoriteStatus(Long userId, ObjectType objectType, List<Long> objectIds) {
         List<UserFavorite> favorites =
                 favoriteRepository.findByUserIdAndObjectTypeAndObjectIdIn(userId, objectType, objectIds);
         Set<Long> favoritedIds =
@@ -139,18 +139,18 @@ public class UserFavoriteService {
     }
 
     // 批量检查多种类型的收藏状态
-    public Map<FavoriteType, Map<Long, Boolean>> checkFavoriteStatusMulti(
+    public Map<ObjectType, Map<Long, Boolean>> checkFavoriteStatusMulti(
             Long userId, List<CheckFavoriteItemRequest> requests) {
         // 1. 按类型分组
-        Map<FavoriteType, List<Long>> typeToIds = requests.stream()
+        Map<ObjectType, List<Long>> typeToIds = requests.stream()
                 .collect(Collectors.groupingBy(
                         CheckFavoriteItemRequest::getObjectType,
                         Collectors.mapping(CheckFavoriteItemRequest::getObjectId, Collectors.toList())));
 
         // 2. 对每种类型批量查询
-        Map<FavoriteType, Map<Long, Boolean>> result = new HashMap<>();
-        for (Map.Entry<FavoriteType, List<Long>> entry : typeToIds.entrySet()) {
-            FavoriteType type = entry.getKey();
+        Map<ObjectType, Map<Long, Boolean>> result = new HashMap<>();
+        for (Map.Entry<ObjectType, List<Long>> entry : typeToIds.entrySet()) {
+            ObjectType type = entry.getKey();
             List<Long> objectIds = entry.getValue();
             result.put(type, checkFavoriteStatus(userId, type, objectIds));
         }

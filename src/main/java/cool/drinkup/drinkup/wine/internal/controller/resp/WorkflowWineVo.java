@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import cool.drinkup.drinkup.favorite.spi.FavoriteType;
+import cool.drinkup.drinkup.favorite.spi.ObjectType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -99,7 +99,7 @@ public class WorkflowWineVo implements cool.drinkup.drinkup.shared.dto.Wine {
     private String updateDate;
 
     private Integer favoriteCount;
-    private FavoriteType favoriteType;
+    private ObjectType favoriteType;
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)

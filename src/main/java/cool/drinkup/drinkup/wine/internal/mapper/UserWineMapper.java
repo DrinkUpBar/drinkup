@@ -77,7 +77,7 @@ public abstract class UserWineMapper {
     @Mapping(source = "processedImage", target = "processedImage", qualifiedByName = "imageToUrl")
     @Mapping(source = "createDate", target = "createDate", qualifiedByName = "dateToString")
     @Mapping(source = "updateDate", target = "updateDate", qualifiedByName = "dateToString")
-    @Mapping(target = "favoriteType", expression = "java(cool.drinkup.drinkup.favorite.spi.FavoriteType.USER_WINE)")
+    @Mapping(target = "favoriteType", expression = "java(cool.drinkup.drinkup.favorite.spi.ObjectType.USER_WINE)")
     public abstract WorkflowUserWineVo toWorkflowUserWineVo(UserWine userWine);
 
     @Named("jsonToWineIngredientsList")

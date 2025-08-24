@@ -1,6 +1,6 @@
 package cool.drinkup.drinkup.wine.internal.model;
 
-import cool.drinkup.drinkup.favorite.spi.FavoriteType;
+import cool.drinkup.drinkup.favorite.spi.ObjectType;
 import cool.drinkup.drinkup.shared.enums.CardStyleEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -78,7 +78,7 @@ public class Wine implements cool.drinkup.drinkup.shared.dto.Wine {
     private Integer favoriteCount = 0;
 
     @Transient
-    private FavoriteType favoriteType = FavoriteType.WINE;
+    private ObjectType favoriteType = ObjectType.WINE;
 
     @Override
     public String getId() {

@@ -8,5 +8,7 @@ public class WineEvent {
         public static final String COCKTAIL_REQUEST = "COCKTAIL_REQUEST";
         public static final String FAVORITE_ADD = "FAVORITE_ADD";
         public static final String FAVORITE_REMOVE = "FAVORITE_REMOVE";
+        public static final String MADE_ADD = "MADE_ADD";
+        public static final String MADE_REMOVE = "MADE_REMOVE";
     }
 }

@@ -2,11 +2,11 @@ package cool.drinkup.drinkup.favorite.internal.controller;
 
 import com.mzt.logapi.starter.annotation.LogRecord;
 import cool.drinkup.drinkup.common.log.event.WineEvent;
-import cool.drinkup.drinkup.favorite.internal.controller.req.AddFavoriteRequest;
-import cool.drinkup.drinkup.favorite.internal.controller.req.CheckFavoriteMultiBatchRequest;
-import cool.drinkup.drinkup.favorite.internal.controller.resp.CheckFavoriteMultiBatchResponse;
-import cool.drinkup.drinkup.favorite.internal.dto.UserFavoriteDTO;
-import cool.drinkup.drinkup.favorite.internal.service.UserFavoriteService;
+import cool.drinkup.drinkup.favorite.internal.controller.req.AddMadeRequest;
+import cool.drinkup.drinkup.favorite.internal.controller.req.CheckMadeMultiBatchRequest;
+import cool.drinkup.drinkup.favorite.internal.controller.resp.CheckMadeMultiBatchResponse;
+import cool.drinkup.drinkup.favorite.internal.dto.UserMadeDTO;
+import cool.drinkup.drinkup.favorite.internal.service.UserMadeService;
 import cool.drinkup.drinkup.favorite.spi.ObjectType;
 import cool.drinkup.drinkup.shared.spi.CommonResp;
 import cool.drinkup.drinkup.user.spi.AuthenticatedUserDTO;
@@ -39,67 +39,67 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/favorites")
+@RequestMapping("/api/made")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "用户收藏", description = "用户收藏相关接口")
+@Tag(name = "用户已调制", description = "用户已调制相关接口")
 @SecurityRequirement(name = "bearerAuth")
-public class UserFavoriteController {
+public class UserMadeController {
 
-    private final UserFavoriteService favoriteService;
+    private final UserMadeService userMadeService;
     private final AuthenticationServiceFacade authenticationServiceFacade;
 
     @LogRecord(
             type = WineEvent.WINE,
-            subType = WineEvent.BehaviorEvent.FAVORITE_ADD,
+            subType = WineEvent.BehaviorEvent.MADE_ADD,
             bizNo = "{{#request.objectType}}-{{#request.objectId}}",
-            success = "用户添加{{#request.objectType}}类型收藏成功，对象ID：{{#request.objectId}}")
+            success = "用户添加{{#request.objectType}}类型已调制成功，对象ID：{{#request.objectId}}")
     @Operation(
-            summary = "添加收藏",
-            description = "为当前登录用户添加新的收藏项",
+            summary = "添加已调制",
+            description = "为当前登录用户添加新的已调制项",
             responses = {
-                @ApiResponse(responseCode = "200", description = "收藏添加成功"),
+                @ApiResponse(responseCode = "200", description = "已调制添加成功"),
                 @ApiResponse(responseCode = "400", description = "请求参数无效"),
                 @ApiResponse(responseCode = "401", description = "未授权访问")
             })
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<CommonResp<Void>> addFavorite(@RequestBody @Valid AddFavoriteRequest request) {
+    public ResponseEntity<CommonResp<Void>> addMade(@RequestBody @Valid AddMadeRequest request) {
         Long userId = getCurrentUserId();
-        favoriteService.addFavorite(userId, request.getObjectType(), request.getObjectId(), request.getNote());
+        userMadeService.addMade(userId, request.getObjectType(), request.getObjectId());
         return ResponseEntity.ok(CommonResp.success(null));
     }
 
     @LogRecord(
             type = WineEvent.WINE,
-            subType = WineEvent.BehaviorEvent.FAVORITE_REMOVE,
+            subType = WineEvent.BehaviorEvent.MADE_REMOVE,
             bizNo = "{{#objectType}}-{{#objectId}}",
-            success = "用户取消{{#objectType}}类型收藏成功，对象ID：{{#objectId}}")
+            success = "用户取消{{#objectType}}类型已调制成功，对象ID：{{#objectId}}")
     @Operation(
-            summary = "取消收藏",
-            description = "删除当前登录用户的收藏项",
+            summary = "取消已调制",
+            description = "删除当前登录用户的已调制项",
             responses = {
-                @ApiResponse(responseCode = "200", description = "收藏删除成功"),
+                @ApiResponse(responseCode = "200", description = "已调制删除成功"),
                 @ApiResponse(responseCode = "401", description = "未授权访问"),
-                @ApiResponse(responseCode = "404", description = "收藏项不存在")
+                @ApiResponse(responseCode = "404", description = "已调制项不存在")
             })
     @DeleteMapping("/{objectType}/{objectId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<CommonResp<Void>> removeFavorite(
-            @Parameter(description = "收藏对象类型") @PathVariable ObjectType objectType,
-            @Parameter(description = "收藏对象ID") @PathVariable Long objectId) {
+    public ResponseEntity<CommonResp<Void>> removeMade(
+            @Parameter(description = "已调制对象类型") @PathVariable ObjectType objectType,
+            @Parameter(description = "已调制对象ID") @PathVariable Long objectId) {
         Long userId = getCurrentUserId();
-        favoriteService.removeFavorite(userId, objectType, objectId);
+        userMadeService.removeMade(userId, objectType, objectId);
         return ResponseEntity.ok(CommonResp.success(null));
     }
 
     @Operation(
-            summary = "获取收藏列表",
-            description = "获取当前登录用户的收藏列表（分页）",
+            summary = "获取已调制列表",
+            description = "获取当前登录用户的已调制列表（分页）",
             responses = {
                 @ApiResponse(
                         responseCode = "200",
-                        description = "成功获取收藏列表",
+                        description = "成功获取已调制列表",
                         content =
                                 @Content(
                                         mediaType = "application/json",
@@ -108,50 +108,50 @@ public class UserFavoriteController {
             })
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<CommonResp<Page<UserFavoriteDTO>>> getUserFavorites(
-            @Parameter(description = "按收藏类型筛选") @RequestParam(required = false) ObjectType objectType,
+    public ResponseEntity<CommonResp<Page<UserMadeDTO>>> getUserMades(
+            @Parameter(description = "按已调制类型筛选") @RequestParam(required = false) ObjectType objectType,
             @Parameter(description = "分页参数")
-                    @PageableDefault(size = 20, sort = "favoriteTime", direction = Sort.Direction.DESC)
+                    @PageableDefault(size = 20, sort = "madeTime", direction = Sort.Direction.DESC)
                     Pageable pageable) {
 
         Long userId = getCurrentUserId();
-        Page<UserFavoriteDTO> favorites = favoriteService.getUserFavoritesWithDetails(userId, objectType, pageable);
-        return ResponseEntity.ok(CommonResp.success(favorites));
+        Page<UserMadeDTO> mades = userMadeService.getUserMadesWithDetails(userId, objectType, pageable);
+        return ResponseEntity.ok(CommonResp.success(mades));
     }
 
     @Operation(
-            summary = "检查收藏状态",
-            description = "检查当前登录用户是否收藏了指定对象",
+            summary = "检查已调制状态",
+            description = "检查当前登录用户是否已调制了指定对象",
             responses = {
-                @ApiResponse(responseCode = "200", description = "成功获取收藏状态"),
+                @ApiResponse(responseCode = "200", description = "成功获取已调制状态"),
                 @ApiResponse(responseCode = "401", description = "未授权访问")
             })
     @GetMapping("/check/{objectType}/{objectId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<CommonResp<Boolean>> checkFavorite(
-            @Parameter(description = "收藏对象类型") @PathVariable ObjectType objectType,
-            @Parameter(description = "收藏对象ID") @PathVariable Long objectId) {
+    public ResponseEntity<CommonResp<Boolean>> checkMade(
+            @Parameter(description = "已调制对象类型") @PathVariable ObjectType objectType,
+            @Parameter(description = "已调制对象ID") @PathVariable Long objectId) {
         Long userId = getCurrentUserId();
-        boolean isFavorited = favoriteService.isFavorited(userId, objectType, objectId);
-        return ResponseEntity.ok(CommonResp.success(isFavorited));
+        boolean isMade = userMadeService.isMade(userId, objectType, objectId);
+        return ResponseEntity.ok(CommonResp.success(isMade));
     }
 
     @Operation(
-            summary = "批量检查收藏状态（多类型）",
-            description = "批量检查当前登录用户是否收藏了指定的多个对象（支持多种类型）",
+            summary = "批量检查已调制状态（多类型）",
+            description = "批量检查当前登录用户是否已调制了指定的多个对象（支持多种类型）",
             responses = {
-                @ApiResponse(responseCode = "200", description = "成功获取批量收藏状态"),
+                @ApiResponse(responseCode = "200", description = "成功获取批量已调制状态"),
                 @ApiResponse(responseCode = "401", description = "未授权访问")
             })
     @PostMapping("/check-batch")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<CommonResp<CheckFavoriteMultiBatchResponse>> checkFavoriteBatchMulti(
-            @Parameter(description = "收藏对象列表") @Valid @RequestBody CheckFavoriteMultiBatchRequest request) {
+    public ResponseEntity<CommonResp<CheckMadeMultiBatchResponse>> checkMadeBatchMulti(
+            @Parameter(description = "已调制对象列表") @Valid @RequestBody CheckMadeMultiBatchRequest request) {
         Long userId = getCurrentUserId();
         Map<ObjectType, Map<Long, Boolean>> statusMap =
-                favoriteService.checkFavoriteStatusMulti(userId, request.getItems());
-        CheckFavoriteMultiBatchResponse response = new CheckFavoriteMultiBatchResponse();
-        response.setStatusMap(statusMap);
+                userMadeService.checkMadeStatusMulti(userId, request.getItems());
+        CheckMadeMultiBatchResponse response = new CheckMadeMultiBatchResponse();
+        response.setResult(statusMap);
         return ResponseEntity.ok(CommonResp.success(response));
     }
 

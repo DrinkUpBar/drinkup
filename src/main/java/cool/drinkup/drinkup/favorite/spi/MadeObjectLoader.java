@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 收藏对象加载器接口
+ * 已调制对象加载器接口
  */
-public interface FavoriteObjectLoader<T> {
+public interface MadeObjectLoader<T> {
     /**
      * 批量加载对象
      * @param objectIds 对象ID列表
@@ -22,11 +22,11 @@ public interface FavoriteObjectLoader<T> {
     boolean validateObject(Long objectId);
 
     /**
-     * 收藏状态变更后的处理
+     * 已调制状态变更后的处理
      * @param objectId 对象ID
-     * @param isFavorite 是否收藏
+     * @param isMade 是否已调制
      */
-    void afterFavorite(Long objectId, boolean isFavorite);
+    void afterMade(Long objectId, boolean isMade);
 
-    ObjectType getFavoriteType();
+    ObjectType getMadeType();
 }

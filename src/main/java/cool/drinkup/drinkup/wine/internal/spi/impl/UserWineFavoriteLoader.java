@@ -1,7 +1,7 @@
 package cool.drinkup.drinkup.wine.internal.spi.impl;
 
 import cool.drinkup.drinkup.favorite.spi.FavoriteObjectLoader;
-import cool.drinkup.drinkup.favorite.spi.FavoriteType;
+import cool.drinkup.drinkup.favorite.spi.ObjectType;
 import cool.drinkup.drinkup.shared.dto.UserWine;
 import cool.drinkup.drinkup.wine.internal.mapper.UserWineMapper;
 import cool.drinkup.drinkup.wine.internal.repository.UserWineRepository;
@@ -40,7 +40,7 @@ public class UserWineFavoriteLoader implements FavoriteObjectLoader<UserWine> {
     }
 
     @Override
-    public FavoriteType getFavoriteType() {
-        return FavoriteType.USER_WINE;
+    public ObjectType getFavoriteType() {
+        return ObjectType.USER_WINE;
     }
 }

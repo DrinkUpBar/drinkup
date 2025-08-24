@@ -2,14 +2,18 @@ package cool.drinkup.drinkup.favorite.internal.dto;
 
 import cool.drinkup.drinkup.favorite.spi.ObjectType;
 import java.time.ZonedDateTime;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-public class UserFavoriteDTO {
+/**
+ * 用户已调制DTO
+ */
+@Getter
+@Setter
+public class UserMadeDTO {
     private Long id;
     private ObjectType objectType;
     private Long objectId;
-    private ZonedDateTime favoriteTime;
-    private String note;
+    private ZonedDateTime madeTime;
     private Object objectDetail;
 }
