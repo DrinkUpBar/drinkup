@@ -1,6 +1,7 @@
 package cool.drinkup.drinkup.wine.internal.controller;
 
 import cool.drinkup.drinkup.shared.spi.CommonResp;
+import cool.drinkup.drinkup.wine.internal.rag.DataLoaderService;
 import cool.drinkup.drinkup.wine.internal.service.refresh.AsyncImageProcessingService;
 import cool.drinkup.drinkup.wine.internal.service.refresh.ImageProcessingTaskService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,6 +35,7 @@ public class AdminProcessingController {
 
     private final ImageProcessingTaskService taskService;
     private final AsyncImageProcessingService asyncService;
+    private final DataLoaderService dataLoaderService;
 
     /**
      * Create image processing tasks for unprocessed images
@@ -131,5 +134,32 @@ public class AdminProcessingController {
             response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(CommonResp.error(e.getMessage()));
         }
+    }
+
+    @Operation(summary = "加载酒类数据到向量数据库", description = "将酒类相关数据加载到系统中")
+    @ApiResponse(responseCode = "200", description = "Successfully loaded wine data")
+    @PostMapping("/vector-store/load-wine")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> loadWine() {
+        dataLoaderService.loadData();
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/vector-store/add-wine/{wineId}")
+    @Operation(summary = "添加特定酒类数据到向量数据库", description = "将酒类数据添加到系统中")
+    @Parameter(name = "wineId", description = "酒ID", required = true)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> addWine(@PathVariable Long wineId) {
+        dataLoaderService.addData(wineId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/vector-store/clear")
+    @Operation(summary = "清除向量数据库数据", description = "清除向量数据库中的所有酒类数据")
+    @ApiResponse(responseCode = "200", description = "Successfully cleared vector store data")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> clearVectorStore() {
+        dataLoaderService.clearData();
+        return ResponseEntity.ok().build();
     }
 }

@@ -11,7 +11,6 @@ import cool.drinkup.drinkup.wine.internal.mapper.UserWineMapper;
 import cool.drinkup.drinkup.wine.internal.mapper.WineMapper;
 import cool.drinkup.drinkup.wine.internal.model.UserWine;
 import cool.drinkup.drinkup.wine.internal.model.Wine;
-import cool.drinkup.drinkup.wine.internal.rag.DataLoaderService;
 import cool.drinkup.drinkup.wine.internal.service.MixedWineService;
 import cool.drinkup.drinkup.wine.internal.service.UserWineService;
 import cool.drinkup.drinkup.wine.internal.service.WineService;
@@ -30,7 +29,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -46,7 +44,6 @@ public class WineController {
     private final UserWineService userWineService;
     private final WineMapper wineMapper;
     private final UserWineMapper userWineMapper;
-    private final DataLoaderService dataLoaderService;
     private final MixedWineService mixedWineService;
 
     @GetMapping("/{id}")
@@ -97,24 +94,6 @@ public class WineController {
         Page<UserWine> userWine = userWineService.getUserWine(pageRequest);
         Page<WorkflowUserWineVo> userWineVos = userWine.map(userWineMapper::toWorkflowUserWineVo);
         return ResponseEntity.ok(CommonResp.success(userWineVos));
-    }
-
-    @Operation(summary = "加载酒类数据到向量数据库", description = "将酒类相关数据加载到系统中")
-    @ApiResponse(responseCode = "200", description = "Successfully loaded wine data")
-    @PostMapping("/vector-store/load-wine")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> loadWine() {
-        dataLoaderService.loadData();
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/vector-store/add-wine/{wineId}")
-    @Operation(summary = "添加特定酒类数据到向量数据库", description = "将酒类数据添加到系统中")
-    @Parameter(name = "wineId", description = "酒ID", required = true)
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> addWine(@PathVariable Long wineId) {
-        dataLoaderService.addData(wineId);
-        return ResponseEntity.ok().build();
     }
 
     @LogRecord(
