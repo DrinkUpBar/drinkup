@@ -1,5 +1,6 @@
 package cool.drinkup.drinkup.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cool.drinkup.drinkup.config.Interceptors.TraceIdInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -59,10 +60,11 @@ public class SessionConfig extends AbstractHttpSessionApplicationInitializer imp
     }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(LettuceConnectionFactory connectionFactory) {
+    public RedisTemplate<String, Object> redisTemplate(
+            LettuceConnectionFactory connectionFactory, ObjectMapper objectMapper) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
         template.setConnectionFactory(connectionFactory);
         return template;
     }
