@@ -120,4 +120,14 @@ public class WineCategoryService {
 
         return treeVo;
     }
+
+    @Cacheable(
+            value = "wine:categories",
+            key = "'wine:' + #wineId + ':categoryIds'",
+            cacheManager = "categoryCacheManager")
+    public List<String> getCategoryIdsByWineId(Long wineId) {
+        return mappingRepository.findByWineId(wineId).stream()
+                .map(mapping -> mapping.getCategoryId().toString())
+                .collect(Collectors.toList());
+    }
 }

@@ -8,6 +8,7 @@ import cool.drinkup.drinkup.shared.enums.ThemeEnum;
 import cool.drinkup.drinkup.wine.spi.UserWineServiceFacade;
 import cool.drinkup.drinkup.wine.spi.WineServiceFacade;
 import cool.drinkup.drinkup.wine.spi.WorkflowWineResp;
+import cool.drinkup.drinkup.wine.spi.dto.ProcessCocktailRequestDto;
 import cool.drinkup.drinkup.workflow.internal.constant.WorkflowConstant;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatV2Req;
@@ -82,8 +83,10 @@ public class WorkflowService {
     private final ImageProcessService imageProcessService;
 
     public WorkflowWineResp processCocktailRequest(WorkflowUserReq userInput) {
-        String userInputText = userInput.getUserInput();
-        return wineServiceFacade.processCocktailRequest(userInputText);
+        ProcessCocktailRequestDto request = new ProcessCocktailRequestDto();
+        request.setUserInput(userInput.getUserInput());
+        request.setCategoryIds(userInput.getCategoryIds());
+        return wineServiceFacade.processCocktailRequest(request);
     }
 
     public WorkflowUserChatResp chat(WorkflowUserChatReq userInput) {

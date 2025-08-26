@@ -101,6 +101,8 @@ public class WorkflowWineVo implements cool.drinkup.drinkup.shared.dto.Wine {
     private Integer favoriteCount;
     private ObjectType favoriteType;
 
+    private List<String> categoryIds;
+
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Ingredient {

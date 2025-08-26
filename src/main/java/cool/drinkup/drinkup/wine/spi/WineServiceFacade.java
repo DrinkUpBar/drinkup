@@ -2,6 +2,7 @@ package cool.drinkup.drinkup.wine.spi;
 
 import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowWineVo;
 import cool.drinkup.drinkup.wine.internal.model.Wine;
+import cool.drinkup.drinkup.wine.spi.dto.ProcessCocktailRequestDto;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -18,7 +19,7 @@ public interface WineServiceFacade {
 
     List<Wine> getRandomWines(int count);
 
-    WorkflowWineResp processCocktailRequest(String userInput);
+    WorkflowWineResp processCocktailRequest(ProcessCocktailRequestDto request);
 
     WorkflowWineVo toWineVo(Wine wine);
 }
