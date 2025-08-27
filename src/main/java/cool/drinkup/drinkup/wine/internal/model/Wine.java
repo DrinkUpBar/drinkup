@@ -67,6 +67,10 @@ public class Wine implements cool.drinkup.drinkup.shared.dto.Wine {
     @JdbcTypeCode(SqlTypes.JSON)
     private String tagsOthers;
 
+    private String primaryTaste;
+    private String aromaProfile;
+    private String mouthfeel;
+
     private String image;
     private String cardImage;
     private String processedImage;

@@ -103,6 +103,14 @@ public class WorkflowWineVo implements cool.drinkup.drinkup.shared.dto.Wine {
 
     private List<String> categoryIds;
 
+    @JsonAlias("primary_taste")
+    private String primaryTaste;
+
+    @JsonAlias("aroma_profile")
+    private String aromaProfile;
+
+    private String mouthfeel;
+
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Ingredient {
