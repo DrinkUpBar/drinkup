@@ -29,8 +29,9 @@ public class DataLoaderService {
 
     public void loadData() {
         List<Wine> wines = wineRepository.findAll();
-        List<Document> documents = new ArrayList<>();
         for (Wine wine : wines) {
+            log.info("Loading wine: {}, {}", wine.getId(), wine.getName());
+            List<Document> documents = new ArrayList<>();
             String jsonString;
             try {
                 jsonString = objectMapper.writeValueAsString(wine);
@@ -53,12 +54,12 @@ public class DataLoaderService {
                         documents.add(document);
                     }
                 }
-            } catch (JsonProcessingException e) {
+                vectorStore.add(documents);
+            } catch (Exception e) {
                 log.error("Error converting wine to JSON string: {}", e.getMessage());
                 continue;
             }
         }
-        vectorStore.add(documents);
     }
 
     public void addData(Long wineId) {
