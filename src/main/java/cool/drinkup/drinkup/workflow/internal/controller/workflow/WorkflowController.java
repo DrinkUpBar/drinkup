@@ -55,7 +55,6 @@ public class WorkflowController {
     @Operation(summary = "处理调酒单请求", description = "处理用户输入的鸡尾酒相关工作流")
     @ApiResponse(responseCode = "200", description = "Successfully processed cocktail request")
     @PostMapping("/cocktail")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CommonResp<WorkflowWineResp>> processCocktailRequest(
             @Parameter(description = "User input for cocktail workflow") @RequestBody WorkflowUserReq userInput) {
         var resp = workflowService.processCocktailRequest(userInput);

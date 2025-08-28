@@ -60,6 +60,12 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/wines/random")
                         .permitAll()
+                        // 酒单搜索接口
+                        .requestMatchers("/api/workflow/cocktail")
+                        .permitAll()
+                        // 酒单分类相关接口
+                        .requestMatchers(HttpMethod.GET, "/api/wine-categories/**")
+                        .permitAll()
                         .anyRequest()
                         .authenticated())
                 .logout(logout -> logout.logoutUrl("/api/auth/logout")
