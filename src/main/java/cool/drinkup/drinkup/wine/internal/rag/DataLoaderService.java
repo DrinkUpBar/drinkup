@@ -63,6 +63,9 @@ public class DataLoaderService {
     }
 
     public void addData(Long wineId) {
+        // Clear existing data for this wine ID first
+        clearDataByWineId(wineId);
+
         Wine wine = wineRepository.findById(wineId).orElseThrow(() -> new RuntimeException("Wine not found"));
         String jsonString;
         try {
@@ -91,6 +94,7 @@ public class DataLoaderService {
             vectorStore.add(documents);
         } catch (JsonProcessingException e) {
             log.error("Error converting wine to JSON string: {}", e.getMessage());
+            throw new RuntimeException("Failed to add wine data for wine ID: " + wineId, e);
         }
     }
 
@@ -333,6 +337,25 @@ public class DataLoaderService {
 
         } catch (Exception e) {
             log.error("Error checking vector store status: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 清除指定酒单ID的向量数据
+     * @param wineId 要清除的酒单ID
+     */
+    public void clearDataByWineId(Long wineId) {
+        log.info("Starting to clear vector store data for wine ID: {}", wineId);
+
+        try {
+            // 使用过滤器删除指定酒单ID的所有文档
+            String filter = "wineId == " + wineId;
+            vectorStore.delete(filter);
+            log.info("Successfully cleared data for wine ID: {}", wineId);
+
+        } catch (Exception e) {
+            log.error("Failed to clear data for wine ID {}: {}", wineId, e.getMessage(), e);
+            throw new RuntimeException("Failed to clear existing data for wine ID: " + wineId, e);
         }
     }
 
