@@ -19,10 +19,10 @@ public interface WineCategoryMappingRepository extends JpaRepository<WineCategor
     Page<Long> findWineIdsByCategoryId(@Param("categoryId") Long categoryId, Pageable pageable);
 
     /**
-     * 根据多个分类ID查询酒ID列表（按权重综合排序）
+     * 根据多个分类ID查询酒ID列表（去重并按酒单ID升序排序，确保分页稳定）
      */
-    @Query("SELECT m.wineId FROM WineCategoryMapping m WHERE m.categoryId IN :categoryIds "
-            + "GROUP BY m.wineId ORDER BY SUM(m.weight) DESC")
+    @Query("SELECT DISTINCT m.wineId FROM WineCategoryMapping m WHERE m.categoryId IN :categoryIds"
+            + " ORDER BY m.wineId ASC")
     Page<Long> findWineIdsByCategories(@Param("categoryIds") List<Long> categoryIds, Pageable pageable);
 
     /**
