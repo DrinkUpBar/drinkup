@@ -18,6 +18,7 @@ import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowSt
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowTranslateReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatV2Req;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatV2StreamReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.info.Attachment;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.info.BarAttachment;
@@ -29,9 +30,12 @@ import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowS
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowTranslateResp;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowUserChatResp;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowUserChatV2Resp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowUserChatV2StreamResp;
 import cool.drinkup.drinkup.workflow.internal.model.Bar;
 import cool.drinkup.drinkup.workflow.internal.model.BarStock;
 import cool.drinkup.drinkup.workflow.internal.model.Material;
+import cool.drinkup.drinkup.workflow.internal.service.agent.AgentService;
+import cool.drinkup.drinkup.workflow.internal.service.agent.dto.AgentStreamRequest;
 import cool.drinkup.drinkup.workflow.internal.service.bar.BarService;
 import cool.drinkup.drinkup.workflow.internal.service.bartender.BartenderService;
 import cool.drinkup.drinkup.workflow.internal.service.bartender.dto.BartenderParams;
@@ -81,6 +85,7 @@ public class WorkflowService {
     private final MaterialService materialService;
     private final StockDescriptionUtil stockDescriptionUtil;
     private final ImageProcessService imageProcessService;
+    private final AgentService agentService;
 
     public WorkflowWineResp processCocktailRequest(WorkflowUserReq userInput) {
         ProcessCocktailRequestDto request = new ProcessCocktailRequestDto();
@@ -182,6 +187,10 @@ public class WorkflowService {
     }
 
     public WorkflowBartenderChatDto mixDrinkV2(WorkflowBartenderChatV2Req bartenderInput) {
+        return mixDrinkV2(bartenderInput, null);
+    }
+
+    public WorkflowBartenderChatDto mixDrinkV2(WorkflowBartenderChatV2Req bartenderInput, Long userId) {
         var bartenderParam = buildBartenderParams(bartenderInput);
         var chatWithBartender = bartenderService.generateDrinkV2(bartenderInput.getConversationId(), bartenderParam);
         var themeEnum = ThemeEnum.fromValue(bartenderParam.getThemeEnum());
@@ -201,7 +210,9 @@ public class WorkflowService {
             chatBotResponse.setTheme(themeEnum);
             chatBotResponse.setCardStyle(theme.getCardStyle());
             // Convert workflow response to wine response for saving
-            UserWine saveUserWine = userWineServiceFacade.saveUserWine(chatBotResponse);
+            UserWine saveUserWine = (userId == null)
+                    ? userWineServiceFacade.saveUserWine(chatBotResponse)
+                    : userWineServiceFacade.saveUserWine(chatBotResponse, userId);
             chatBotResponse.setId(saveUserWine.getId());
             chatBotResponse.setImage(imageService.getImageUrl(imageId));
             chatBotResponse.setProcessedImage(imageService.getImageUrl(processedImageId));
@@ -376,5 +387,36 @@ public class WorkflowService {
             }
         }
         return stockDescription.toString();
+    }
+
+    /**
+     * 流式聊天 v2 - 透传到 Python Agent，返回所有中间事件
+     */
+    public Flux<WorkflowUserChatV2StreamResp> chatV2Stream(WorkflowUserChatV2StreamReq userInput, String userId) {
+        log.info("Starting streaming chat v2 for user: {}, conversationId: {}", userId, userInput.getConversationId());
+
+        // 构建请求参数
+        AgentStreamRequest agentRequest = AgentStreamRequest.builder()
+                .userMessage(userInput.getUserMessage())
+                .userId(userId)
+                .conversationId(userInput.getConversationId())
+                .params(AgentStreamRequest.AgentParams.builder()
+                        .userStock(buildStockDescription(userInput.getAttachment()))
+                        .userInfo("user_id: " + userId)
+                        .build())
+                .build();
+
+        return agentService
+                .chatStream(agentRequest)
+                .filter(data -> data != null && !data.trim().isEmpty())
+                .mapNotNull(rawData -> {
+                    var parsedResponse = agentService.parseSSEData(rawData);
+                    if (parsedResponse != null) {
+                        return agentService.convertToStreamResponse(parsedResponse);
+                    }
+                    return null;
+                })
+                .doOnError(error -> log.error("Error in streaming chat v2", error))
+                .doOnComplete(() -> log.info("Completed streaming chat v2 for user: {}", userId));
     }
 }

@@ -40,6 +40,16 @@ public class UserWineService implements UserWineServiceFacade {
         return userWineRepository.save(userWine);
     }
 
+    @Override
+    @Transactional
+    public UserWine saveUserWine(WorkflowBartenderChatDto chatBotResponse, Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("userId must not be null");
+        }
+        var userWine = userWineMapper.toUserWine(chatBotResponse, userId);
+        return userWineRepository.save(userWine);
+    }
+
     public Page<UserWine> getUserWine(PageRequest pageRequest) {
         Optional<AuthenticatedUserDTO> currentAuthenticatedUser =
                 authenticationServiceFacade.getCurrentAuthenticatedUser();

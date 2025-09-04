@@ -63,6 +63,9 @@ public class SecurityConfig {
                         // 酒单搜索接口
                         .requestMatchers("/api/workflow/cocktail")
                         .permitAll()
+                        // 调酒师公开接口
+                        .requestMatchers(HttpMethod.POST, "/api/workflow/v2/bartender/public")
+                        .permitAll()
                         // 酒单分类相关接口
                         .requestMatchers(HttpMethod.GET, "/api/wine-categories/**")
                         .permitAll()

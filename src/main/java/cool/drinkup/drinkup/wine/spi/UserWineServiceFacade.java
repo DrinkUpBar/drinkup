@@ -5,4 +5,6 @@ import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
 
 public interface UserWineServiceFacade {
     UserWine saveUserWine(WorkflowBartenderChatDto chatBotResponse);
+
+    UserWine saveUserWine(WorkflowBartenderChatDto chatBotResponse, Long userId);
 }

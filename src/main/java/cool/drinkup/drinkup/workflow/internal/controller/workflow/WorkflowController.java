@@ -5,15 +5,19 @@ import cool.drinkup.drinkup.common.log.event.AIChatEvent;
 import cool.drinkup.drinkup.common.log.event.WineEvent;
 import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
 import cool.drinkup.drinkup.shared.spi.CommonResp;
+import cool.drinkup.drinkup.user.spi.AuthenticatedUserDTO;
+import cool.drinkup.drinkup.user.spi.AuthenticationServiceFacade;
 import cool.drinkup.drinkup.wine.spi.WorkflowWineResp;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatV2Req;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderUserDemandReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowMaterialAnalysisReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowStockRecognitionReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowStockRecognitionStreamReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowTranslateReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatV2Req;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatV2StreamReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowMaterialAnalysisResp;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowStockRecognitionResp;
@@ -21,6 +25,7 @@ import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowS
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowTranslateResp;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowUserChatResp;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowUserChatV2Resp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowUserChatV2StreamResp;
 import cool.drinkup.drinkup.workflow.internal.service.WorkflowService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -46,6 +51,7 @@ import reactor.core.publisher.Flux;
 public class WorkflowController {
 
     private final WorkflowService workflowService;
+    private final AuthenticationServiceFacade authenticationServiceFacade;
 
     @LogRecord(
             type = WineEvent.WINE,
@@ -139,6 +145,26 @@ public class WorkflowController {
 
     @LogRecord(
             type = AIChatEvent.AI_CHAT,
+            subType = AIChatEvent.BehaviorEvent.BARTENDER_CHAT,
+            bizNo = "{{#_ret.body.data.id}}",
+            success = "用户调酒师聊天成功(公开)，生成酒单：{{#_ret.body.data.name}}",
+            extra = "{{@logExtraUtil.getLogExtra(#bartenderInput)}}")
+    @Operation(summary = "与调酒师聊天v2(公开)", description = "与调酒师进行对话（公开接口，仅userDemand）")
+    @ApiResponse(responseCode = "200", description = "Successfully chatted with the bartender (public)")
+    @PostMapping("/v2/bartender/public")
+    public ResponseEntity<CommonResp<WorkflowBartenderChatDto>> mixDrinkV2Public(
+            @RequestBody WorkflowBartenderUserDemandReq bartenderInput) {
+        var v2Req = new WorkflowBartenderChatV2Req();
+        v2Req.setUserDemand(bartenderInput.getUserDemand());
+        var resp = workflowService.mixDrinkV2(v2Req, bartenderInput.getUserId());
+        if (resp == null) {
+            return ResponseEntity.ok(CommonResp.error("Error mixing drink"));
+        }
+        return ResponseEntity.ok(CommonResp.success(resp));
+    }
+
+    @LogRecord(
+            type = AIChatEvent.AI_CHAT,
             subType = AIChatEvent.BehaviorEvent.STOCK_RECOGNITION,
             bizNo = "{{#barId}}",
             success = "用户库存识别成功，识别到{{#_ret.body.data.recognizedStocks.size()}}种库存")
@@ -212,5 +238,37 @@ public class WorkflowController {
             return ResponseEntity.ok(CommonResp.error("AI材料解读失败"));
         }
         return ResponseEntity.ok(CommonResp.success(resp));
+    }
+
+    @LogRecord(
+            type = AIChatEvent.AI_CHAT,
+            subType = AIChatEvent.BehaviorEvent.AI_CHAT,
+            bizNo = "null",
+            success = "用户AI流式聊天成功, 用户请求：{{#userInput.userMessage}}")
+    @Operation(summary = "与机器人流式聊天v2", description = "与机器人进行流式对话v2，透传到Python Agent，返回所有中间事件")
+    @ApiResponse(responseCode = "200", description = "Successfully started streaming chat with the bot")
+    @PostMapping(value = "/v2/chat/stream", produces = MediaType.APPLICATION_NDJSON_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    public Flux<CommonResp<WorkflowUserChatV2StreamResp>> chatV2Stream(
+            @RequestBody WorkflowUserChatV2StreamReq userInput) {
+        // 从认证信息中获取用户ID
+        String userId = authenticationServiceFacade
+                .getCurrentAuthenticatedUser()
+                .map(AuthenticatedUserDTO::userId)
+                .map(String::valueOf)
+                .orElse("anonymous");
+
+        log.info("Starting streaming chat v2 for user: {}, message: {}", userId, userInput.getUserMessage());
+
+        return workflowService
+                .chatV2Stream(userInput, userId)
+                .map(resp -> {
+                    if (resp != null) {
+                        return CommonResp.success(resp);
+                    } else {
+                        return CommonResp.<WorkflowUserChatV2StreamResp>error("Error in streaming chat with the bot");
+                    }
+                })
+                .onErrorReturn(CommonResp.<WorkflowUserChatV2StreamResp>error("Error in streaming chat with the bot"));
     }
 }
