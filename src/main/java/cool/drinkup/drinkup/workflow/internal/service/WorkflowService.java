@@ -53,12 +53,15 @@ import cool.drinkup.drinkup.workflow.internal.service.theme.Theme;
 import cool.drinkup.drinkup.workflow.internal.service.theme.ThemeFactory;
 import cool.drinkup.drinkup.workflow.internal.service.translate.TranslateService;
 import cool.drinkup.drinkup.workflow.internal.util.StockDescriptionUtil;
+import java.util.Base64;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -396,14 +399,50 @@ public class WorkflowService {
         log.info("Starting streaming chat v2 for user: {}, conversationId: {}", userId, userInput.getConversationId());
 
         // 构建请求参数
+        AgentStreamRequest.AgentParams.AgentParamsBuilder paramsBuilder = AgentStreamRequest.AgentParams.builder()
+                .userStock(buildStockDescription(userInput.getAttachment()))
+                .userInfo("user_id: " + userId);
+
+        // 处理图片附件
+        if (userInput.getAttachment() != null
+                && userInput.getAttachment().getImageAttachmentList() != null
+                && !userInput.getAttachment().getImageAttachmentList().isEmpty()) {
+
+            List<AgentStreamRequest.ImageAttachmentDto> imageAttachments =
+                    userInput.getAttachment().getImageAttachmentList().stream()
+                            .map(img -> {
+                                String base64Data = img.getImageBase64();
+
+                                // 如果没有base64数据但有imageId，从ImageService加载
+                                if ((base64Data == null || base64Data.isEmpty()) && img.getImageId() != null) {
+                                    try {
+                                        Resource imageResource = imageService.loadImage(img.getImageId());
+                                        if (imageResource instanceof ByteArrayResource) {
+                                            ByteArrayResource byteArrayResource = (ByteArrayResource) imageResource;
+                                            base64Data = Base64.getEncoder()
+                                                    .encodeToString(byteArrayResource.getByteArray());
+                                            log.info("Loaded image {} and converted to" + " base64", img.getImageId());
+                                        }
+                                    } catch (Exception e) {
+                                        log.error("Failed to load image {}: {}", img.getImageId(), e.getMessage());
+                                    }
+                                }
+
+                                return AgentStreamRequest.ImageAttachmentDto.builder()
+                                        .imageBase64(base64Data)
+                                        .mimeType(img.getMimeType() != null ? img.getMimeType() : "image/jpeg")
+                                        .build();
+                            })
+                            .collect(Collectors.toList());
+
+            paramsBuilder.imageAttachmentList(imageAttachments);
+        }
+
         AgentStreamRequest agentRequest = AgentStreamRequest.builder()
                 .userMessage(userInput.getUserMessage())
                 .userId(userId)
                 .conversationId(userInput.getConversationId())
-                .params(AgentStreamRequest.AgentParams.builder()
-                        .userStock(buildStockDescription(userInput.getAttachment()))
-                        .userInfo("user_id: " + userId)
-                        .build())
+                .params(paramsBuilder.build())
                 .build();
 
         return agentService

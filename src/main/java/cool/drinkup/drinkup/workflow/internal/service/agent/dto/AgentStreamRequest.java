@@ -33,5 +33,20 @@ public class AgentStreamRequest {
 
         @JsonProperty("user_info")
         private String userInfo;
+
+        @JsonProperty("image_attachment_list")
+        private java.util.List<ImageAttachmentDto> imageAttachmentList;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ImageAttachmentDto {
+        @JsonProperty("image_base64")
+        private String imageBase64;
+
+        @JsonProperty("mime_type")
+        private String mimeType;
     }
 }

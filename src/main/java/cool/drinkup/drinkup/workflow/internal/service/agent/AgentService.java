@@ -48,7 +48,6 @@ public class AgentService {
                     HttpURLConnection connection = null;
                     try {
                         String requestJson = objectMapper.writeValueAsString(request);
-                        log.info("Request JSON: {}", requestJson);
 
                         // 使用 HttpURLConnection 实现 SSE 流式读取
                         URI uri = URI.create(agentBaseUrl + "/api/workflow/chat/v2/stream");

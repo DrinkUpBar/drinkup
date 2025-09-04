@@ -11,4 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ImageAttachment {
     private String imageId;
+    private String imageBase64;
+    private String mimeType;
 }
