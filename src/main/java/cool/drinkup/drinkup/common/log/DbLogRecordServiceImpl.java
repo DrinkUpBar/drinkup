@@ -1,10 +1,8 @@
 package cool.drinkup.drinkup.common.log;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-
 import com.mzt.logapi.service.ILogRecordService;
-
+import cool.drinkup.drinkup.common.log.repository.impl.LogRecord;
+import cool.drinkup.drinkup.common.log.repository.impl.LogRecordRepository;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -15,11 +13,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import cool.drinkup.drinkup.common.log.repository.impl.LogRecord;
-import cool.drinkup.drinkup.common.log.repository.impl.LogRecordRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -41,14 +38,17 @@ public class DbLogRecordServiceImpl implements ILogRecordService {
                 // 保存到Elasticsearch
                 logRecordRepository.save(logRecord);
 
-                log.info("成功保存日志记录到Elasticsearch: bizNo={}, type={}, operator={}, action={}",
-                        logRecord.getBizNo(), logRecord.getType(), logRecord.getOperator(), logRecord.getAction());
+                log.info(
+                        "成功保存日志记录到Elasticsearch: bizNo={}, type={}, operator={}, action={}",
+                        logRecord.getBizNo(),
+                        logRecord.getType(),
+                        logRecord.getOperator(),
+                        logRecord.getAction());
 
             } catch (Exception e) {
                 log.error("保存日志记录到Elasticsearch失败", e);
             }
         });
-
     }
 
     @Override
@@ -58,7 +58,7 @@ public class DbLogRecordServiceImpl implements ILogRecordService {
 
             // 转换回框架的LogRecord格式
             List<com.mzt.logapi.beans.LogRecord> result = new ArrayList<>();
-            for ( LogRecord logRecord : logRecords) {
+            for (LogRecord logRecord : logRecords) {
                 result.add(convertToBizLogRecord(logRecord));
             }
 
@@ -78,11 +78,16 @@ public class DbLogRecordServiceImpl implements ILogRecordService {
 
             // 转换回框架的LogRecord格式
             List<com.mzt.logapi.beans.LogRecord> result = new ArrayList<>();
-            for ( LogRecord logRecord : logRecords) {
+            for (LogRecord logRecord : logRecords) {
                 result.add(convertToBizLogRecord(logRecord));
             }
 
-            log.info("从Elasticsearch根据bizNo查询到{}条日志记录: bizNo={}, type={}, subType={}", result.size(), bizNo, type, subType);
+            log.info(
+                    "从Elasticsearch根据bizNo查询到{}条日志记录: bizNo={}, type={}, subType={}",
+                    result.size(),
+                    bizNo,
+                    type,
+                    subType);
             return result;
 
         } catch (Exception e) {
@@ -107,19 +112,28 @@ public class DbLogRecordServiceImpl implements ILogRecordService {
                 .createTime(ZonedDateTime.now(ZoneOffset.UTC))
                 .extra(bizLogRecord.getExtra())
                 .codeVariable(LogRecord.CodeVariable.builder()
-                        .className(bizLogRecord.getCodeVariable() != null &&
-                                bizLogRecord.getCodeVariable()
-                                        .get(com.mzt.logapi.beans.CodeVariableType.ClassName) != null
-                                                ? bizLogRecord.getCodeVariable()
-                                                        .get(com.mzt.logapi.beans.CodeVariableType.ClassName).toString()
-                                                : null)
-                        .methodName(bizLogRecord.getCodeVariable() != null &&
-                                bizLogRecord.getCodeVariable()
-                                        .get(com.mzt.logapi.beans.CodeVariableType.MethodName) != null
-                                                ? bizLogRecord.getCodeVariable()
-                                                        .get(com.mzt.logapi.beans.CodeVariableType.MethodName)
-                                                        .toString()
-                                                : null)
+                        .className(
+                                bizLogRecord.getCodeVariable() != null
+                                                && bizLogRecord
+                                                                .getCodeVariable()
+                                                                .get(com.mzt.logapi.beans.CodeVariableType.ClassName)
+                                                        != null
+                                        ? bizLogRecord
+                                                .getCodeVariable()
+                                                .get(com.mzt.logapi.beans.CodeVariableType.ClassName)
+                                                .toString()
+                                        : null)
+                        .methodName(
+                                bizLogRecord.getCodeVariable() != null
+                                                && bizLogRecord
+                                                                .getCodeVariable()
+                                                                .get(com.mzt.logapi.beans.CodeVariableType.MethodName)
+                                                        != null
+                                        ? bizLogRecord
+                                                .getCodeVariable()
+                                                .get(com.mzt.logapi.beans.CodeVariableType.MethodName)
+                                                .toString()
+                                        : null)
                         .build())
                 .build();
     }
@@ -140,16 +154,20 @@ public class DbLogRecordServiceImpl implements ILogRecordService {
         bizLogRecord.setExtra(logRecord.getExtra());
         Instant instant = logRecord.getCreateTime().toInstant();
         bizLogRecord.setCreateTime(Date.from(instant));
-        
+
         // 处理CodeVariable可能为null的情况
         if (logRecord.getCodeVariable() != null) {
             bizLogRecord.setCodeVariable(Map.of(
-                    com.mzt.logapi.beans.CodeVariableType.ClassName, 
-                    logRecord.getCodeVariable().getClassName() != null ? logRecord.getCodeVariable().getClassName() : "",
-                    com.mzt.logapi.beans.CodeVariableType.MethodName, 
-                    logRecord.getCodeVariable().getMethodName() != null ? logRecord.getCodeVariable().getMethodName() : ""));
+                    com.mzt.logapi.beans.CodeVariableType.ClassName,
+                    logRecord.getCodeVariable().getClassName() != null
+                            ? logRecord.getCodeVariable().getClassName()
+                            : "",
+                    com.mzt.logapi.beans.CodeVariableType.MethodName,
+                    logRecord.getCodeVariable().getMethodName() != null
+                            ? logRecord.getCodeVariable().getMethodName()
+                            : ""));
         }
-        
+
         return bizLogRecord;
     }
 }

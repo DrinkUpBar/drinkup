@@ -1,11 +1,10 @@
 package cool.drinkup.drinkup.config.Interceptors;
 
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerInterceptor;
-
 import io.micrometer.tracing.Tracer;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 @Component
 public class TraceIdInterceptor implements HandlerInterceptor {
@@ -26,4 +25,3 @@ public class TraceIdInterceptor implements HandlerInterceptor {
         return true;
     }
 }
-

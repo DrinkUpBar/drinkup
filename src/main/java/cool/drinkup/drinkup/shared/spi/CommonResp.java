@@ -7,6 +7,7 @@ public class CommonResp<T> {
     private T data;
     private String message;
     private Integer code;
+
     public static <T> CommonResp<T> success(T data) {
         CommonResp<T> resp = new CommonResp<>();
         resp.setData(data);
@@ -21,4 +22,4 @@ public class CommonResp<T> {
         resp.setCode(-1);
         return resp;
     }
-} 
+}

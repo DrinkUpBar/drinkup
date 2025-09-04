@@ -1,8 +1,11 @@
 package cool.drinkup.drinkup.config;
 
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -19,9 +22,6 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
@@ -35,53 +35,72 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**", "/swagger-resources/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/api/auth/logout")
-                .logoutSuccessHandler((request, response, authentication) -> {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    response.getWriter().write("{\"message\":\"Logged out successfully\",\"status\":\"success\"}");
+        return http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**")
+                        .permitAll()
+                        // 监控相关
+                        .requestMatchers("/actuator/**")
+                        .permitAll()
+                        // swagger 相关
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/webjars/**",
+                                "/swagger-resources/**")
+                        .permitAll()
+                        // 酒卡分享链接
+                        .requestMatchers(HttpMethod.GET, "/api/propagate/**")
+                        .permitAll()
+                        // Apple App Site Association
+                        .requestMatchers("/.well-known/apple-app-site-association")
+                        .permitAll()
+                        // 酒单相关公开接口
+                        .requestMatchers(HttpMethod.GET, "/api/wines/by-tag")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/wines/random")
+                        .permitAll()
+                        // 酒单搜索接口
+                        .requestMatchers("/api/workflow/cocktail")
+                        .permitAll()
+                        // 酒单分类相关接口
+                        .requestMatchers(HttpMethod.GET, "/api/wine-categories/**")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
+                .logout(logout -> logout.logoutUrl("/api/auth/logout")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            response.getWriter()
+                                    .write("{\"message\":\"Logged out" + " successfully\",\"status\":\"success\"}");
+                        })
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID", "SESSION")
+                        .permitAll())
+                .sessionManagement(session -> {
+                    session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+                    session.sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::migrateSession);
+                    session.enableSessionUrlRewriting(false);
                 })
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID", "SESSION")
-                .permitAll()
-            )
-            .sessionManagement(session -> {
-                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
-                session.sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::migrateSession);
-                session.enableSessionUrlRewriting(false);
-            })
-            .sessionManagement(session ->
-                session
-                    .maximumSessions(1)
-                    .expiredUrl("/api/auth/login")
-            )
-            .headers(headers -> headers
-                .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-                .xssProtection(HeadersConfigurer.XXssConfig::disable)
-            )
-            .exceptionHandling(exception -> exception
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("{\"message\":\"Token expired or invalid\",\"code\":\"-1\"}");
-                })
-            )
-            .build();
+                .sessionManagement(session -> session.maximumSessions(1).expiredUrl("/api/auth/login"))
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                        .xssProtection(HeadersConfigurer.XXssConfig::disable))
+                .exceptionHandling(
+                        exception -> exception.authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter()
+                                    .write("{\"message\":\"Token expired or" + " invalid\",\"code\":\"-1\"}");
+                        }))
+                .build();
     }
 
     @Bean
     AuthenticationManager authenticationManager(HttpSecurity http, PasswordEncoder passwordEncoder) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        AuthenticationManagerBuilder authenticationManagerBuilder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder
-            .userDetailsService(drinkupUserDetailsService)
-            .passwordEncoder(passwordEncoder);
+                .userDetailsService(drinkupUserDetailsService)
+                .passwordEncoder(passwordEncoder);
         return authenticationManagerBuilder.build();
     }
 

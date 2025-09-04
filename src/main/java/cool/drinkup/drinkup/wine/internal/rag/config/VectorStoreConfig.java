@@ -12,42 +12,43 @@ public class VectorStoreConfig {
     @Value("${spring.data.redis.port}")
     private int redisPort;
 
-    
-
     // @Bean
     // public JedisPooled jedisPooled() {
     //     return new JedisPooled(redisHost, redisPort);
     // }
 
     // @Bean
-    // VectorStore vectorStore(JedisPooled jedisPooled, @Qualifier("openAiEmbeddingModel") EmbeddingModel embeddingModel) {
+    // VectorStore vectorStore(JedisPooled jedisPooled, @Qualifier("openAiEmbeddingModel")
+    // EmbeddingModel embeddingModel) {
     //     return RedisVectorStore.builder(jedisPooled, embeddingModel)
     //             .initializeSchema(true)
     //             .indexName("wine-index") // Optional: defaults to "spring-ai-index"
     //             .metadataFields( // Optional: define metadata fields for filtering
     //                     MetadataField.tag("wineId")
     //             )
-    //             .batchingStrategy(new TokenCountBatchingStrategy()) // Optional: defaults to TokenCountBatchingStrategy
+    //             .batchingStrategy(new TokenCountBatchingStrategy()) // Optional: defaults to
+    // TokenCountBatchingStrategy
     //             .build();
     // }
 
     // @Bean
-	// public VectorStore vectorStore(MilvusServiceClient milvusClient, @Qualifier("openAiEmbeddingModel") EmbeddingModel embeddingModel) {
-	// 	return MilvusVectorStore.builder(milvusClient, embeddingModel)
-	// 			.collectionName(milvusCollectionName)
-	// 			.databaseName(milvusDatabaseName)
-	// 			.indexType(IndexType.IVF_FLAT)
-	// 			.metricType(MetricType.COSINE)
-	// 			.batchingStrategy(new TokenCountBatchingStrategy())
-	// 			.initializeSchema(true)
-	// 			.build();
-	// }
+    // public VectorStore vectorStore(MilvusServiceClient milvusClient,
+    // @Qualifier("openAiEmbeddingModel") EmbeddingModel embeddingModel) {
+    // 	return MilvusVectorStore.builder(milvusClient, embeddingModel)
+    // 			.collectionName(milvusCollectionName)
+    // 			.databaseName(milvusDatabaseName)
+    // 			.indexType(IndexType.IVF_FLAT)
+    // 			.metricType(MetricType.COSINE)
+    // 			.batchingStrategy(new TokenCountBatchingStrategy())
+    // 			.initializeSchema(true)
+    // 			.build();
+    // }
 
-	// @Bean
-	// public MilvusServiceClient milvusClient() {
-	// 	return new MilvusServiceClient(ConnectParam.newBuilder()
-	// 		.withAuthorization(milvusUsername, milvusPassword)
-	// 		.withUri(milvusHost + ":" + milvusPort)
-	// 		.build());
-	// }
+    // @Bean
+    // public MilvusServiceClient milvusClient() {
+    // 	return new MilvusServiceClient(ConnectParam.newBuilder()
+    // 		.withAuthorization(milvusUsername, milvusPassword)
+    // 		.withUri(milvusHost + ":" + milvusPort)
+    // 		.build());
+    // }
 }

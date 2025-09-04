@@ -1,7 +1,6 @@
 package cool.drinkup.drinkup.workflow.internal.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -33,4 +32,4 @@ public class BarProcurement {
     private String iconType;
 
     private String description;
-} 
+}

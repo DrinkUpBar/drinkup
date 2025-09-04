@@ -1,10 +1,9 @@
 package cool.drinkup;
 
+import cool.drinkup.drinkup.DrinkupApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.core.ApplicationModules;
 import org.springframework.modulith.docs.Documenter;
-
-import cool.drinkup.drinkup.DrinkupApplication;
 
 class ModuleDependencyTest {
 
@@ -17,7 +16,6 @@ class ModuleDependencyTest {
     @Test
     void createModuleDocumentation() {
         ApplicationModules modules = ApplicationModules.of(DrinkupApplication.class);
-        new Documenter(modules)
-                .writeDocumentation();
+        new Documenter(modules).writeDocumentation();
     }
-} 
+}

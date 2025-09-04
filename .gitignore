@@ -34,6 +34,8 @@ build/
 .data/
 .DS_Store
 
+## Git ###
+.pre-commit-config.yaml
 
 ### Drink Up ###
 .env
@@ -42,3 +44,4 @@ src/main/resources/application-dev.yaml
 /docs/
 /logs/
 /config/
+.*/

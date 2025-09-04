@@ -1,15 +1,13 @@
 package cool.drinkup.drinkup.infrastructure.internal.image.impl;
 
+import cool.drinkup.drinkup.infrastructure.internal.image.config.properties.ImgProxyProperties;
+import cool.drinkup.drinkup.infrastructure.spi.image.ImageCompressor;
+import io.micrometer.observation.annotation.Observed;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-
-import cool.drinkup.drinkup.infrastructure.spi.ImageCompressor;
-import cool.drinkup.drinkup.infrastructure.internal.image.config.properties.ImgProxyProperties;
-import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -17,11 +15,10 @@ public class ImgProxyImageCompressor implements ImageCompressor {
 
     private final ImgProxyProperties properties;
 
-    @Observed(name = "image.imgproxy.compress",
-        contextualName = "Imgproxy压缩图片",
-        lowCardinalityKeyValues = {
-            "Tag", "image"
-        })
+    @Observed(
+            name = "image.imgproxy.compress",
+            contextualName = "Imgproxy压缩图片",
+            lowCardinalityKeyValues = {"Tag", "image"})
     @Override
     public String compress(String imageUrl) {
         return buildSignedUrl(imageUrl, properties.getParam());
@@ -62,11 +59,8 @@ public class ImgProxyImageCompressor implements ImageCompressor {
         int len = hex.length();
         byte[] bytes = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
-            bytes[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
-                                 + Character.digit(hex.charAt(i+1), 16));
+            bytes[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4) + Character.digit(hex.charAt(i + 1), 16));
         }
         return bytes;
     }
-
-    
 }

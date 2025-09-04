@@ -1,23 +1,22 @@
 package cool.drinkup.drinkup.wine.internal.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cool.drinkup.drinkup.shared.spi.CommonMapper;
+import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowWineVo;
+import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowWineVo.Ingredient;
+import cool.drinkup.drinkup.wine.internal.model.Wine;
+import java.util.Collections;
+import java.util.List;
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.Collections;
-import java.util.List;
-
-import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowWineVo;
-import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowWineVo.Ingredient;
-import cool.drinkup.drinkup.wine.internal.model.Wine;
-
-@Mapper(componentModel = "spring", uses = ImageServiceMapper.class)
+@Mapper(componentModel = "spring", uses = CommonMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public abstract class WineMapper {
-    
+
     protected ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Mapping(target = "updateDate", ignore = true)
@@ -27,8 +26,10 @@ public abstract class WineMapper {
     @Mapping(source = "tagFlavor", target = "tagFlavor", qualifiedByName = "jsonToStringList")
     @Mapping(source = "tagsOthers", target = "tagsOthers", qualifiedByName = "jsonToStringList")
     @Mapping(source = "image", target = "image", qualifiedByName = "imageToUrl")
+    @Mapping(source = "cardImage", target = "cardImage", qualifiedByName = "imageToUrl")
+    @Mapping(source = "processedImage", target = "processedImage", qualifiedByName = "imageToUrl")
     @Mapping(source = "favoriteCount", target = "favoriteCount")
-    @Mapping(target = "favoriteType", expression = "java(cool.drinkup.drinkup.favorite.spi.FavoriteType.WINE)")
+    @Mapping(target = "favoriteType", expression = "java(cool.drinkup.drinkup.favorite.spi.ObjectType.WINE)")
     public abstract WorkflowWineVo toWineVo(Wine wine);
 
     @Named("jsonToIngredientsList")
@@ -54,4 +55,4 @@ public abstract class WineMapper {
             return Collections.emptyList();
         }
     }
-} 
+}

@@ -1,18 +1,16 @@
 package cool.drinkup.drinkup.common.log;
 
-import org.springframework.stereotype.Service;
 import com.mzt.logapi.beans.Operator;
 import com.mzt.logapi.service.IOperatorGetService;
-
-import java.util.Optional;
-
 import cool.drinkup.drinkup.user.spi.AuthenticatedUserDTO;
 import cool.drinkup.drinkup.user.spi.AuthenticationServiceFacade;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class DefaultOperatorGetServiceImpl  implements IOperatorGetService{
+public class DefaultOperatorGetServiceImpl implements IOperatorGetService {
 
     private final AuthenticationServiceFacade authenticationServiceFacade;
 
@@ -25,6 +23,9 @@ public class DefaultOperatorGetServiceImpl  implements IOperatorGetService{
             operator.setOperatorId(String.valueOf(authenticatedUserDTO.userId()));
             return operator;
         }
-        return null;
+        // 对于匿名用户，设置默认的操作者ID
+        Operator operator = new Operator();
+        operator.setOperatorId("anonymous");
+        return operator;
     }
 }

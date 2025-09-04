@@ -1,7 +1,6 @@
 package cool.drinkup.drinkup.wine.internal.controller.resp;
 
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RandomWineResp {
-    private List<RandomWineContent> wines;  // 多个酒
+    private List<RandomWineContent> wines; // 多个酒
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -21,4 +21,4 @@ public class RandomWineResp {
         private String type;
         private Object wine;
     }
-} 
+}

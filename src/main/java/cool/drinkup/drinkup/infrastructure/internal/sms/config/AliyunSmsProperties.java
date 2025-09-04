@@ -1,15 +1,13 @@
 package cool.drinkup.drinkup.infrastructure.internal.sms.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cool.drinkup.drinkup.infrastructure.internal.sms.impl.AliyunSmsSender;
+import cool.drinkup.drinkup.infrastructure.spi.sms.SmsSender;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import cool.drinkup.drinkup.infrastructure.internal.sms.impl.AliyunSmsSender;
-import cool.drinkup.drinkup.infrastructure.spi.SmsSender;
-import lombok.Data;
 
 @Data
 @Configuration
@@ -25,7 +23,8 @@ public class AliyunSmsProperties {
     private boolean skipVerification = false;
 
     @Bean
-    SmsSender smsSender(AliyunSmsProperties properties, ObjectMapper objectMapper, RedisTemplate<String, String> redisTemplate) {
+    SmsSender smsSender(
+            AliyunSmsProperties properties, ObjectMapper objectMapper, RedisTemplate<String, String> redisTemplate) {
         return new AliyunSmsSender(properties, objectMapper, redisTemplate);
     }
-} 
+}

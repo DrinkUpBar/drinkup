@@ -1,36 +1,40 @@
 package cool.drinkup.drinkup.wine.internal.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
+import cool.drinkup.drinkup.shared.spi.CommonMapper;
+import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowUserWineVo;
+import cool.drinkup.drinkup.wine.internal.model.UserWine;
+import java.util.Collections;
+import java.util.List;
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.List;
-
-import cool.drinkup.drinkup.shared.dto.WorkflowBartenderChatDto;
-import cool.drinkup.drinkup.wine.internal.controller.resp.WorkflowUserWineVo;
-import cool.drinkup.drinkup.wine.internal.model.UserWine;
-
-@Mapper(componentModel = "spring", uses = ImageServiceMapper.class)
+@Mapper(componentModel = "spring", uses = CommonMapper.class, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public abstract class UserWineMapper {
 
     protected static final Logger log = LoggerFactory.getLogger(UserWineMapper.class);
     protected ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    
+
     @Mapping(target = "id", ignore = true)
-    @Mapping(source = "chatBotResponse.ingredients", target = "ingredients", qualifiedByName = "IngredientListToJsonString")
-    @Mapping(source = "chatBotResponse.tagBaseSpirit", target = "tagBaseSpirit", qualifiedByName = "JsonStringListToString")
+    @Mapping(
+            source = "chatBotResponse.ingredients",
+            target = "ingredients",
+            qualifiedByName = "IngredientListToJsonString")
+    @Mapping(
+            source = "chatBotResponse.tagBaseSpirit",
+            target = "tagBaseSpirit",
+            qualifiedByName = "JsonStringListToString")
     @Mapping(source = "chatBotResponse.tagFlavor", target = "tagFlavor", qualifiedByName = "JsonStringListToString")
     @Mapping(source = "chatBotResponse.tagsOthers", target = "tagsOthers", qualifiedByName = "JsonStringListToString")
+    @Mapping(source = "chatBotResponse.cardImage", target = "cardImage")
+    @Mapping(source = "chatBotResponse.processedImage", target = "processedImage")
     @Mapping(source = "userId", target = "userId")
     @Mapping(target = "createDate", ignore = true)
     @Mapping(target = "updateDate", ignore = true)
@@ -69,9 +73,11 @@ public abstract class UserWineMapper {
     @Mapping(source = "tagFlavor", target = "tagFlavor", qualifiedByName = "jsonToStringList")
     @Mapping(source = "tagsOthers", target = "tagsOthers", qualifiedByName = "jsonToStringList")
     @Mapping(source = "image", target = "image", qualifiedByName = "imageToUrl")
+    @Mapping(source = "cardImage", target = "cardImage", qualifiedByName = "imageToUrl")
+    @Mapping(source = "processedImage", target = "processedImage", qualifiedByName = "imageToUrl")
     @Mapping(source = "createDate", target = "createDate", qualifiedByName = "dateToString")
     @Mapping(source = "updateDate", target = "updateDate", qualifiedByName = "dateToString")
-    @Mapping(target = "favoriteType", expression = "java(cool.drinkup.drinkup.favorite.spi.FavoriteType.USER_WINE)")
+    @Mapping(target = "favoriteType", expression = "java(cool.drinkup.drinkup.favorite.spi.ObjectType.USER_WINE)")
     public abstract WorkflowUserWineVo toWorkflowUserWineVo(UserWine userWine);
 
     @Named("jsonToWineIngredientsList")
@@ -109,14 +115,4 @@ public abstract class UserWineMapper {
             return Collections.emptyList();
         }
     }
-
-    @Named("dateToString")
-    protected String dateToString(ZonedDateTime date) {
-        if (date == null) {
-            return null;
-        }
-        // Convert UTC time to UTC+8 (Asia/Shanghai timezone)
-        ZonedDateTime shanghaiTime = date.withZoneSameInstant(ZoneId.of("Asia/Shanghai"));
-        return shanghaiTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-    }
-} 
+}

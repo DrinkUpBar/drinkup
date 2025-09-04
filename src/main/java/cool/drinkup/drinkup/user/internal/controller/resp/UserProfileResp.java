@@ -1,8 +1,7 @@
 package cool.drinkup.drinkup.user.internal.controller.resp;
 
-import java.util.Set;
-
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Set;
 import lombok.Data;
 
 @Data
@@ -26,4 +25,4 @@ public class UserProfileResp {
 
     @Schema(description = "用户角色")
     private Set<String> roles;
-} 
+}

@@ -13,14 +13,14 @@ public interface FavoriteObjectLoader<T> {
      * @return 对象Map，key为对象ID，value为对象实例
      */
     Map<Long, T> loadObjects(List<Long> objectIds);
-    
+
     /**
      * 验证对象是否存在
      * @param objectId 对象ID
      * @return 是否存在
      */
     boolean validateObject(Long objectId);
-    
+
     /**
      * 收藏状态变更后的处理
      * @param objectId 对象ID
@@ -28,5 +28,5 @@ public interface FavoriteObjectLoader<T> {
      */
     void afterFavorite(Long objectId, boolean isFavorite);
 
-    FavoriteType getFavoriteType();
-} 
+    ObjectType getFavoriteType();
+}
