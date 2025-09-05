@@ -12,6 +12,7 @@ import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBa
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderChatV2Req;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowBartenderUserDemandReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowMaterialAnalysisReq;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowSaveMemoryReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowStockRecognitionReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowStockRecognitionStreamReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowTranslateReq;
@@ -20,6 +21,7 @@ import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUs
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserChatV2StreamReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.req.WorkflowUserReq;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowMaterialAnalysisResp;
+import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowSaveMemoryResp;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowStockRecognitionResp;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowStockRecognitionStreamResp;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowTranslateResp;
@@ -96,6 +98,7 @@ public class WorkflowController {
     @ApiResponse(responseCode = "200", description = "Successfully chatted with the bot")
     @PostMapping("/v2/chat")
     @PreAuthorize("isAuthenticated()")
+    @Deprecated
     public ResponseEntity<CommonResp<WorkflowUserChatV2Resp>> chatV2(@RequestBody WorkflowUserChatV2Req userInput) {
         var resp = workflowService.chatV2(userInput);
         if (resp == null) {
@@ -134,6 +137,7 @@ public class WorkflowController {
     @ApiResponse(responseCode = "200", description = "Successfully chatted with the bartender")
     @PostMapping("/v2/bartender")
     @PreAuthorize("isAuthenticated()")
+    @Deprecated
     public ResponseEntity<CommonResp<WorkflowBartenderChatDto>> mixDrinkV2(
             @RequestBody WorkflowBartenderChatV2Req bartenderInput) {
         var resp = workflowService.mixDrinkV2(bartenderInput);
@@ -270,5 +274,35 @@ public class WorkflowController {
                     }
                 })
                 .onErrorReturn(CommonResp.<WorkflowUserChatV2StreamResp>error("Error in streaming chat with the bot"));
+    }
+
+    @LogRecord(
+            type = AIChatEvent.AI_CHAT,
+            subType = AIChatEvent.BehaviorEvent.SAVE_MEMORY,
+            bizNo = "{{#req.conversationId}}",
+            success = "保存会话记忆成功, 对话ID: {{#req.conversationId}}")
+    @Operation(summary = "保存会话记忆", description = "将会话内容保存到用户记忆库")
+    @ApiResponse(responseCode = "200", description = "Successfully saved conversation to memory")
+    @PostMapping("/conversation/save-memory")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CommonResp<WorkflowSaveMemoryResp>> saveConversationMemory(
+            @Parameter(description = "Save memory request") @RequestBody WorkflowSaveMemoryReq req) {
+        // 从认证信息中获取用户ID
+        String userId = authenticationServiceFacade
+                .getCurrentAuthenticatedUser()
+                .map(AuthenticatedUserDTO::userId)
+                .map(String::valueOf)
+                .orElse("anonymous");
+
+        log.info("Saving conversation memory for user: {}, conversationId: {}", userId, req.getConversationId());
+
+        // 异步保存记忆，立即返回
+        workflowService.saveConversationMemoryAsync(req.getConversationId(), userId);
+
+        // 立即返回成功响应
+        WorkflowSaveMemoryResp resp = new WorkflowSaveMemoryResp();
+        resp.setStatus("accepted");
+        resp.setMessagesSaved(0); // 表示已接受请求，实际数量在异步处理中确定
+        return ResponseEntity.ok(CommonResp.success(resp));
     }
 }

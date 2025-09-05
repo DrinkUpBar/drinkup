@@ -72,6 +72,9 @@ import reactor.core.publisher.Flux;
 @RequiredArgsConstructor
 public class WorkflowService {
 
+    @org.springframework.beans.factory.annotation.Value("${drinkup.agent.base-url:http://drinkup-agent}")
+    private String agentBaseUrl;
+
     private final WineServiceFacade wineServiceFacade;
     private final UserWineServiceFacade userWineServiceFacade;
     private final ChatBotService chatBotService;
@@ -457,5 +460,17 @@ public class WorkflowService {
                 })
                 .doOnError(error -> log.error("Error in streaming chat v2", error))
                 .doOnComplete(() -> log.info("Completed streaming chat v2 for user: {}", userId));
+    }
+
+    /**
+     * 异步保存会话记忆
+     * 委托给AgentService在虚拟线程池中执行
+     */
+    public void saveConversationMemoryAsync(String conversationId, String userId) {
+        log.info(
+                "Delegating save conversation memory to AgentService - conversationId: {}, userId:" + " {}",
+                conversationId,
+                userId);
+        agentService.saveConversationMemoryAsync(conversationId, userId);
     }
 }

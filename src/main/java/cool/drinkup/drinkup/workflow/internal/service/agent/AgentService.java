@@ -4,18 +4,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cool.drinkup.drinkup.workflow.internal.controller.workflow.resp.WorkflowUserChatV2StreamResp;
 import cool.drinkup.drinkup.workflow.internal.service.agent.dto.AgentStreamRequest;
 import cool.drinkup.drinkup.workflow.internal.service.agent.dto.AgentStreamResponse;
+import jakarta.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
@@ -26,6 +34,8 @@ public class AgentService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private RestClient restClient;
+
     @Value("${drinkup.agent.base-url:http://drinkup-agent}")
     private String agentBaseUrl;
 
@@ -34,6 +44,19 @@ public class AgentService {
 
     @Value("${drinkup.agent.read-timeout:300000}")
     private int readTimeout;
+
+    @PostConstruct
+    public void init() {
+        HttpClient jdk = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1) // 关键：强制 HTTP/1.1
+                .build();
+
+        RestClient client = RestClient.builder()
+                .requestFactory(new JdkClientHttpRequestFactory(jdk))
+                .baseUrl(agentBaseUrl)
+                .build();
+        this.restClient = client;
+    }
 
     /**
      * 调用 Python Agent 流式接口 - 使用 HttpURLConnection 实现真正的 SSE 流式处理
@@ -317,5 +340,51 @@ public class AgentService {
         }
 
         return builder.build();
+    }
+
+    /**
+     * 异步保存会话记忆到Python Agent
+     * 使用虚拟线程池执行，不阻塞调用方
+     */
+    public void saveConversationMemoryAsync(String conversationId, String userId) {
+        log.info(
+                "Starting async save conversation memory to Python Agent - conversationId: {}," + " userId: {}",
+                conversationId,
+                userId);
+
+        // 使用虚拟线程池异步执行
+        CompletableFuture.runAsync(
+                () -> {
+                    try {
+                        // 构建请求体 - Python端期望的是snake_case格式
+                        Map<String, String> requestBody = new HashMap<>();
+                        requestBody.put("conversation_id", conversationId);
+                        requestBody.put("user_id", userId);
+
+                        // 使用 RestClient 发送请求
+                        String response = restClient
+                                .post()
+                                .uri(agentBaseUrl + "/api/workflow/conversation/save-to-memory")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(requestBody)
+                                .retrieve()
+                                .body(String.class);
+
+                        log.info(
+                                "Successfully saved conversation memory to Python Agent -"
+                                        + " conversationId: {}, response: {}",
+                                conversationId,
+                                response);
+
+                    } catch (Exception e) {
+                        log.error(
+                                "Error saving conversation memory to Python Agent - conversationId:" + " {}",
+                                conversationId,
+                                e);
+                    }
+                },
+                Executors.newVirtualThreadPerTaskExecutor());
+
+        log.info("Async save conversation memory task submitted - conversationId: {}", conversationId);
     }
 }
