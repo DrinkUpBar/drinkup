@@ -19,8 +19,6 @@ public class ImageGenerateService {
 
     private final ImageGenerator glifImageGenerator;
 
-    private final ImageGenerator falImageGenerator;
-
     private final ThemeFactory themeFactory;
 
     private final ImageGeneratorFactory imageGeneratorFactory;
@@ -31,7 +29,6 @@ public class ImageGenerateService {
             ThemeFactory themeFactory,
             ImageGeneratorFactory imageGeneratorFactory) {
         this.glifImageGenerator = glifImageGenerator;
-        this.falImageGenerator = falImageGenerator;
         this.themeFactory = themeFactory;
         this.imageGeneratorFactory = imageGeneratorFactory;
     }
