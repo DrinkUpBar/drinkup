@@ -26,7 +26,7 @@ public class AgentService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${drinkup.agent.base-url:http://localhost:8001}")
+    @Value("${drinkup.agent.base-url:http://drinkup-agent}")
     private String agentBaseUrl;
 
     @Value("${drinkup.agent.connect-timeout:30000}")
